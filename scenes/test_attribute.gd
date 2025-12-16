@@ -33,3 +33,7 @@ func _print_all_attributes() -> void:
 	print("Agility: ", attribute_component.get_value(&"agility"))
 	print("Intelligence: ", attribute_component.get_value(&"intelligence"))
 	print("Vitality: ", attribute_component.get_value(&"vitality"))
+
+	print("Max Health: ", attribute_component.get_value(&"max_health"))
+	print("Physical Attack: ", attribute_component.get_value(&"phy_attack"))
+	print("Defense: ", attribute_component.get_value(&"defense"))

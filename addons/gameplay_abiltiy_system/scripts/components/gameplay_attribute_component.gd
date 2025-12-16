@@ -18,13 +18,15 @@ func initialize(sets: Array[GameplayAttributeSet] = []) -> void:
 	if not sets.is_empty():
 		_active_sets = sets.duplicate(true)
 	
-	# 遍历所有属性集，批量创建实例
+	# 1. 先注册所有属性 (此时属性实例尚未创建，无法互相读取)
 	for attr_set in _active_sets:
 		var new_instances : Dictionary[StringName, GameplayAttributeInstance] = attr_set.instantiate_attributes()
 		for id in new_instances:
 			_register_instance(id, new_instances[id])
 
-	# 注意：依赖处理会在后续章节中添加
+	# 2. 再处理依赖关系 (此时所有属性都已存在，可以互相读取)
+	for atr_set in _active_sets:
+		atr_set.resolve_dependencies(self)
 
 ## 获取属性值
 ## [param] id: StringName 属性ID
@@ -67,5 +69,17 @@ func _register_instance(id: StringName, instance: GameplayAttributeInstance) -> 
 		return false
 	_attributes[id] = instance
 	# 转发信号：当实例值变化时，组件也发出信号
-	instance.value_changed.connect(func(old, new) -> void: attribute_value_changed.emit(id, new))
+	instance.value_changed.connect(
+		func(old, new) -> void: 
+			attribute_value_changed.emit(id, new)
+			_handle_dependency(id, new)
+	)
 	return true
+
+## 处理依赖关系
+## [param] attr_id: StringName 变化的属性ID
+## [param] new_val: float 新值
+func _handle_dependency(attr_id: StringName, new_val: float) -> void:
+	# 通知所有 Set，看看有没有人关心这个属性的变化
+	for attribute_set in _active_sets:
+		attribute_set.on_attribute_changed(self, attr_id, new_val)

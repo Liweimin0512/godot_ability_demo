@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SecondaryAttributeSet" load_steps=8 format=3 uid="uid://c6m5kfhl1aid0"]
+
+[ext_resource type="Script" uid="uid://dj0iwc88r8noi" path="res://addons/gameplay_abiltiy_system/scripts/attributes/gameplay_attribute.gd" id="1_paqsv"]
+[ext_resource type="Resource" uid="uid://dfptvmbcw16mx" path="res://data/attributes/attack_speed.tres" id="2_5p0ev"]
+[ext_resource type="Script" uid="uid://danhjuvl7e5kn" path="res://scripts/data/secondary_attribute_set.gd" id="2_y0gq1"]
+[ext_resource type="Resource" uid="uid://uveywnuho3qn" path="res://data/attributes/crit_rate.tres" id="3_j57ob"]
+[ext_resource type="Resource" uid="uid://dubf86p0rhi87" path="res://data/attributes/defense.tres" id="4_mjyjy"]
+[ext_resource type="Resource" uid="uid://cbh07kartsnwe" path="res://data/attributes/max_health.tres" id="5_dlfnk"]
+[ext_resource type="Resource" uid="uid://ddi8png5ca4f7" path="res://data/attributes/phy_attack.tres" id="6_o7xoh"]
+
+[resource]
+script = ExtResource("2_y0gq1")
+attributes = Dictionary[ExtResource("1_paqsv"), float]({
+ExtResource("2_5p0ev"): 0.0,
+ExtResource("3_j57ob"): 0.05,
+ExtResource("4_mjyjy"): 0.0,
+ExtResource("5_dlfnk"): 100.0,
+ExtResource("6_o7xoh"): 5.0
+})
+metadata/_custom_type_script = "uid://danhjuvl7e5kn"
