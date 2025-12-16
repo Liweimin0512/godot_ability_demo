@@ -2,8 +2,8 @@
 
 [ext_resource type="PackedScene" uid="uid://0dbkas4m50et" path="res://scenes/room_lobby.tscn" id="1_jyhfs"]
 [ext_resource type="Script" uid="uid://ctchlggjlcgm8" path="res://scenes/main.gd" id="1_tefeu"]
-[ext_resource type="PackedScene" uid="uid://cwod0ct36wlgo" path="res://prefabs/Player.tscn" id="2_tbgi4"]
-[ext_resource type="PackedScene" uid="uid://b1t1sf3ftqb3f" path="res://prefabs/Teleporter.tscn" id="3_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://cwod0ct36wlgo" path="res://scenes/Player.tscn" id="2_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://b1t1sf3ftqb3f" path="res://scenes/Teleporter.tscn" id="3_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://5u5shejmnm2d" path="res://scenes/room_dungeon.tscn" id="3_tefeu"]
 [ext_resource type="PackedScene" uid="uid://b3e2ofxe5aiji" path="res://scenes/room_boss.tscn" id="4_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://cgv4kbrho80c8" path="res://addons/simple_inventory/src/widgets/inventory.tscn" id="7_o6xl0"]
@@ -80,3 +80,13 @@ grow_vertical = 0
 [node name="AttributeDashboard" parent="UILayer/HUD" instance=ExtResource("8_tipki")]
 layout_mode = 0
 anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 404.0
+offset_bottom = 327.0
+grow_horizontal = 1
+grow_vertical = 1
