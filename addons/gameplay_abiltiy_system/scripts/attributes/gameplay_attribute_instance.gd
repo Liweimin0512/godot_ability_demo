@@ -3,15 +3,17 @@ class_name GameplayAttributeInstance
 
 ## 属性运行时实例
 ## 核心职责：维护 BaseValue，管理 Modifiers，计算 FinalValue
-## 注意：当前版本是简化版，只包含基础值。Modifier 系统会在后续章节中添加
 
-var attribute_def: GameplayAttribute  # 属性定义（资源）
-var base_value: float = 0.0 : set = _set_base_value  # 基础值
+const ModifierType = GameplayAttributeModifier.ModifierType
 
-var _cached_final_value: float = 0.0
-var _dirty : bool = true
+var attribute_def: GameplayAttribute  					## 属性定义（资源）
+var base_value: float = 0.0 : set = _set_base_value		## 基础值
+var _modifiers: Dictionary[ModifierType, Array] = {}  	## 修改器列表
+# 性能优化
+var _cached_final_value: float = 0.0						## 缓存
+var _dirty : bool = true									## 脏标记
 
-signal value_changed(old_val: float, new_value: float)
+signal value_changed(old_val: float, new_value: float)	## 当最终值实际改变时发出
 
 func _init(attr_res: GameplayAttribute = null, init_val: float = 0.0) -> void:
 	attribute_def = attr_res
@@ -24,10 +26,50 @@ func get_value() -> float:
 		_recalculate_value()
 	return _cached_final_value
 
+## 添加修改器
+## [param] mod: GameplayAttributeModifier 修改器实例
+func add_modifier(mod: GameplayAttributeModifier) -> void:
+	var _mods : Array = _modifiers.get(mod.modifier_type, [])
+	if _mods.has(mod):
+		push_warning("AttributeInstance: _modifiers has mod: %s" %mod)
+		return
+	if not _modifiers.has(mod.modifier_type):
+		_modifiers[mod.modifier_type] = []
+	_modifiers[mod.modifier_type].append(mod)
+	_on_data_changed()
+
+## 移除修改器
+## [param] mod: GameplayAttributeModifier 修改器实例
+func remove_modifier(mod: GameplayAttributeModifier) -> void:
+	var _mods : Array = _modifiers.get(mod.modifier_type, [])
+	if not _mods.has(mod):
+		push_warning("AttributeInstance: _modifiers not has mod: %s" %mod)
+		return
+	_modifiers[mod.modifier_type].erase(mod)
+	_on_data_changed()
+
 ## 重新计算最终值（当前版本：只处理基础值和范围限制）
 func _recalculate_value() -> void:
 	var final = base_value
 	
+	# 1. 预计算：先归类，避免多次遍历	
+	var override_mods : Array = _modifiers.get(ModifierType.OVERRIDE, [])
+	if override_mods.size() > 1:
+		push_warning("ArratributeInstance: override modifiers size > 1 !")
+		
+	if not override_mods.is_empty():
+		final = override_mods[0]
+	else:
+		var sum_add = 0.0
+		var product_mult = 0.0
+		for mod in _modifiers.get(ModifierType.ADD, []):
+			sum_add += mod.value
+		for mod in _modifiers.get(ModifierType.MULTIPLY, []):
+			product_mult += mod.value
+		# 标准公式：(基础值 + 加法修正) * (1 + 乘法修正总和)
+		# 假设 Modifier 的 Multiply 填 0.1 代表增加 10%
+		final = (base_value + sum_add) * (1.0 + product_mult)
+		
 	# 限制范围
 	if is_instance_valid(attribute_def):
 		final = clampf(final, attribute_def.min_value, attribute_def.max_value)
@@ -42,11 +84,14 @@ func _set_base_value(val: float) -> void:
 	if base_value == val:
 		return
 	
+	base_value =val
+	_on_data_changed()
+
+## 内部通知：数据变化时触发重新计算
+func _on_data_changed() -> void:
 	var old_val = _cached_final_value
-	base_value = val
 	_dirty = true
-	var new_value = get_value()
-	
-	# 如果属性发生改变，那么发出信号
-	if not is_equal_approx(old_val, new_value):
-		value_changed.emit(old_val, new_value)
+	var new_val = get_value()
+	# 如果值发生变化，发出信号
+	if not is_equal_approx(old_val, new_val):
+		value_changed.emit(old_val, new_val)

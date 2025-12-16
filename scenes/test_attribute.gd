@@ -24,6 +24,41 @@ func _ready() -> void:
 	await get_tree().process_frame
 	print("Strength: ", attribute_component.get_value(&"strength"))  # 应该输出 15
 
+	# 测试 1：添加 ADD 修改器
+	print("\n=== Test 1: Adding ADD Modifier (+10 Strength) ===")
+	var modifier_add = GameplayAttributeModifier.new(
+		&"strength",
+		10,
+		GameplayAttributeModifier.ModifierType.ADD
+	)
+	attribute_component.add_modifier(modifier_add)
+
+	await get_tree().process_frame
+	# 应该增加了 10
+	print("Strength (with ADD modifier): ", attribute_component.get_value(&"strength"))  
+
+	# 测试 2：添加 MULTIPLY 修改器
+	print("\n=== Test 2: Adding MULTIPLY Modifier (+20% Strength) ===")
+	var modifier_mult = GameplayAttributeModifier.new(
+		&"strength",
+		0.2,
+		GameplayAttributeModifier.ModifierType.MULTIPLY
+	)
+	attribute_component.add_modifier(modifier_mult)
+	
+	await get_tree().process_frame
+	# 应该是 (Base + 10) * 1.2
+	print("Strength (with ADD + MULTIPLY): ", attribute_component.get_value(&"strength"))  
+	
+	# 测试 3：移除修改器
+	print("\n=== Test 3: Removing Modifiers ===")
+	attribute_component.remove_modifier(modifier_add)
+	attribute_component.remove_modifier(modifier_mult)
+
+	await get_tree().process_frame
+	# 应该恢复原值
+	print("Strength (after remove): ", attribute_component.get_value(&"strength"))  
+
 func _on_attribute_changed(id: StringName, new_val: float) -> void:
 	print("Attribute %s changed to %f" % [id, new_val])
 

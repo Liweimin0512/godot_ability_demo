@@ -60,6 +60,18 @@ func set_base_value(id: StringName, val: float) -> bool:
 func has_attribute(id: StringName) -> bool:
 	return _attributes.has(id)
 
+## 添加属性修改器
+## [param] mod: GameplayAttributeModifier 修改器实例
+func add_modifier(mod: GameplayAttributeModifier) -> void:
+	if _attributes.has(mod.attribute_id):
+		_attributes[mod.attribute_id].add_modifier(mod)
+
+## 移除属性修改器
+## [param] mod: GameplayAttributeModifier 修改器实例
+func remove_modifier(mod: GameplayAttributeModifier) -> void:
+	if _attributes.has(mod.attribute_id):
+		_attributes[mod.attribute_id].remove_modifier(mod)
+
 ## 注册属性实例（内部方法）
 ## [param] id: StringName 属性ID
 ## [param] instance: GameplayAttributeInstance 属性实例
