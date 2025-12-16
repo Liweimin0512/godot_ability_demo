@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+@export var player_data : PlayerData
+
 @export_group("Movement")
 @export var speed: float = 5.0
 @export var acceleration: float = 20.0 # 加速度：决定起步快慢
@@ -9,9 +11,12 @@ extends CharacterBody3D
 @onready var animation_tree: AnimationTree = $Visuals/Barbarian/AnimationTree
 @onready var interaction_area: Area3D = $Visuals/InteractionArea
 @onready var inventory_component: C_Inventory = $InventoryComponent
+@onready var attribute_component: GameplayAttributeComponent = $GameplayAttributeComponent
 
 var animation_state_machine: AnimationNodeStateMachinePlayback
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+
+var attribute_points_manager: AttributePointsManager = AttributePointsManager.new(10)
 
 func _ready() -> void:
 	animation_state_machine = animation_tree.get("parameters/StateMachine/playback")
@@ -21,6 +26,8 @@ func _ready() -> void:
 	if potion:
 		for i in range(3):
 			inventory_component.add_item(potion.duplicate())
+
+	attribute_component.initialize(player_data.attribute_sets)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():

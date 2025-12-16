@@ -3,6 +3,9 @@ extends Node3D
 @export var player_data: PlayerData = null
 @onready var attribute_component: GameplayAttributeComponent = $GameplayAttributeComponent
 
+## 属性点数管理器
+var attribute_points_manager: AttributePointsManager = AttributePointsManager.new(10)
+
 func _ready() -> void:
 	if not is_instance_valid(player_data):
 		push_error("PlayerData is not set")

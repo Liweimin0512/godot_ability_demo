@@ -6,6 +6,7 @@ const TRANSITION_TIME = 1.5
 @onready var player: CharacterBody3D = $RoomLobby/Player
 @onready var inventory_ui: MarginContainer = $UILayer/HUD/inventory
 @onready var camera: Camera3D = $Camera3D
+@onready var attribute_dashboard: AttributeDashboard = $UILayer/HUD/AttributeDashboard
 
 func _ready() -> void:
 	# 初始化：游戏开始时，把摄像机瞬间定格在第一个房间
@@ -14,6 +15,8 @@ func _ready() -> void:
 	# 我们获取 Player 身上的组件，传给 UI
 	var player_inventory : C_Inventory = player.get_inventory() # 确保你在player脚本中实现了这个方法
 	inventory_ui.initialize(player_inventory)
+	var attribute_component : GameplayAttributeComponent = GameplayAbilitySystem.get_component_by_interface(player, "GameplayAttributeComponent")
+	attribute_dashboard.initialize(attribute_component, player.attribute_points_manager)
 	
 func _unhandled_input(event) -> void:
 	if event.is_action_pressed("toggle_inventory"):

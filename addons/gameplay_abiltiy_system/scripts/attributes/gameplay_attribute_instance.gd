@@ -50,7 +50,7 @@ func remove_modifier(mod: GameplayAttributeModifier) -> void:
 
 ## 重新计算最终值（当前版本：只处理基础值和范围限制）
 func _recalculate_value() -> void:
-	var final = base_value
+	var final := base_value
 	
 	# 1. 预计算：先归类，避免多次遍历	
 	var override_mods : Array = _modifiers.get(ModifierType.OVERRIDE, [])
@@ -58,7 +58,8 @@ func _recalculate_value() -> void:
 		push_warning("ArratributeInstance: override modifiers size > 1 !")
 		
 	if not override_mods.is_empty():
-		final = override_mods[0]
+		var mod : GameplayAttributeModifier = override_mods[0]
+		final = mod.value
 	else:
 		var sum_add = 0.0
 		var product_mult = 0.0
