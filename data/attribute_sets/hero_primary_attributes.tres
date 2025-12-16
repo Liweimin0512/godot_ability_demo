@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="GameplayAttributeSet" load_steps=7 format=3 uid="uid://ccp0144chfduo"]
+
+[ext_resource type="Script" uid="uid://dj0iwc88r8noi" path="res://addons/gameplay_abiltiy_system/scripts/attributes/gameplay_attribute.gd" id="1_ihi8y"]
+[ext_resource type="Resource" uid="uid://cbx0i0aec4t7m" path="res://data/attributes/agility.tres" id="2_aikgf"]
+[ext_resource type="Script" uid="uid://bkkqftstlq2s6" path="res://addons/gameplay_abiltiy_system/scripts/attributes/gameplay_attribute_set.gd" id="2_rq3mg"]
+[ext_resource type="Resource" uid="uid://dyfcsi2jjo68" path="res://data/attributes/intelligence.tres" id="3_6oyy8"]
+[ext_resource type="Resource" uid="uid://c44fw6py48hhq" path="res://data/attributes/strength.tres" id="4_gilk8"]
+[ext_resource type="Resource" uid="uid://dk431p0qjp7ss" path="res://data/attributes/vitality.tres" id="5_arxi1"]
+
+[resource]
+script = ExtResource("2_rq3mg")
+attributes = Dictionary[ExtResource("1_ihi8y"), float]({
+ExtResource("2_aikgf"): 8.0,
+ExtResource("3_6oyy8"): 5.0,
+ExtResource("4_gilk8"): 10.0,
+ExtResource("5_arxi1"): 15.0
+})
+metadata/_custom_type_script = "uid://bkkqftstlq2s6"

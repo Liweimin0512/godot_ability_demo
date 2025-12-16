@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="PlayerData" load_steps=4 format=3 uid="uid://cnhlvykhf6ty4"]
+
+[ext_resource type="Script" uid="uid://bkkqftstlq2s6" path="res://addons/gameplay_abiltiy_system/scripts/attributes/gameplay_attribute_set.gd" id="1_srw5w"]
+[ext_resource type="Script" uid="uid://vexvjx4r3f5b" path="res://scripts/data/player_data.gd" id="2_8u1ne"]
+[ext_resource type="Resource" uid="uid://ccp0144chfduo" path="res://data/attribute_sets/hero_primary_attributes.tres" id="2_41usi"]
+
+[resource]
+script = ExtResource("2_8u1ne")
+attribute_sets = Array[ExtResource("1_srw5w")]([ExtResource("2_41usi")])
+metadata/_custom_type_script = "uid://vexvjx4r3f5b"
