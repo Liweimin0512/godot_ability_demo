@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://p05581p7kdka"]
+
+[ext_resource type="Script" uid="uid://dd83p20sxrev0" path="res://ui/vital_hud.gd" id="1_0h87q"]
+[ext_resource type="PackedScene" uid="uid://c8nv5hyd5bvax" path="res://ui/vital_bar.tscn" id="2_62y01"]
+
+[node name="VitalHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_0h87q")
+
+[node name="HealthBar" parent="." instance=ExtResource("2_62y01")]
+unique_name_in_owner = true
+layout_mode = 0
+
+[node name="ManaBar" parent="." instance=ExtResource("2_62y01")]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 37.0
+offset_bottom = 37.0

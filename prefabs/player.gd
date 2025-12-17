@@ -1,4 +1,5 @@
 extends CharacterBody3D
+class_name Player
 
 @export var player_data : PlayerData
 
@@ -11,7 +12,7 @@ extends CharacterBody3D
 @onready var animation_tree: AnimationTree = $Visuals/Barbarian/AnimationTree
 @onready var interaction_area: Area3D = $Visuals/InteractionArea
 @onready var inventory_component: C_Inventory = $InventoryComponent
-@onready var attribute_component: GameplayAttributeComponent = $GameplayAttributeComponent
+@onready var vital_component: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
 
 var animation_state_machine: AnimationNodeStateMachinePlayback
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -27,7 +28,7 @@ func _ready() -> void:
 		for i in range(3):
 			inventory_component.add_item(potion.duplicate())
 
-	attribute_component.initialize(player_data.attribute_sets)
+	vital_component.initialize(player_data.attribute_sets, player_data.vitals)
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -61,6 +62,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		_try_interact()
 	elif event.is_action_pressed("attack"):
 		_play_anim("attack")
+
+	elif event.is_action_pressed("ui_accept"):
+		_test_damage()
+	
+func _test_damage() -> void:
+	if not is_instance_valid(vital_component):
+		return
+
+	var health_vital = vital_component.get_vital(&"health")
+	if not is_instance_valid(health_vital) or not health_vital is HealthVital:
+		return
+	
+	# 创建简单的伤害信息
+	var damage_info = DamageInfo.new(self, null, 10.0)
+	
+	# 应用伤害
+	health_vital.apply_damage(damage_info, self)
+	print("Test: Applied 10 damage")
 
 func get_inventory() -> C_Inventory:
 	return inventory_component

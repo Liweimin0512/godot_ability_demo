@@ -15,7 +15,7 @@ func _ready() -> void:
 	# 我们获取 Player 身上的组件，传给 UI
 	var player_inventory : C_Inventory = player.get_inventory() # 确保你在player脚本中实现了这个方法
 	inventory_ui.initialize(player_inventory)
-	var attribute_component : GameplayAttributeComponent = GameplayAbilitySystem.get_component_by_interface(player, "GameplayAttributeComponent")
+	var attribute_component : GameplayAttributeComponent = GameplayAbilitySystem.get_component_by_interface(player, "GameplayVitalAttributeComponent")
 	attribute_dashboard.initialize(attribute_component, player.attribute_points_manager)
 
 	# 设置自定义伤害策略
