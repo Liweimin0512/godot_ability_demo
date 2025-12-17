@@ -7,4 +7,5 @@ script = ExtResource("1_wrqbr")
 vital_id = &"mana"
 display_name = "魔法值"
 max_value_attribute = &"max_mana"
+regen_rate_attribute = &"mana_regen"
 metadata/_custom_type_script = "uid://diwvpcc0axlat"

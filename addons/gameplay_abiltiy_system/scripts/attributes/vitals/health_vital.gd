@@ -18,9 +18,6 @@ func _init(p_comp: GameplayAttributeComponent = null) -> void:
 	max_value_attribute = &"max_health"  # 依赖 "health" 属性作为上限
 	regen_rate_attribute = &"health_regen"  # 可选：自动回复
 
-	# 调用父类初始化
-	super(p_comp)
-
 ## 生命值恢复信号
 signal health_restored()
 ## 生命值耗尽信号

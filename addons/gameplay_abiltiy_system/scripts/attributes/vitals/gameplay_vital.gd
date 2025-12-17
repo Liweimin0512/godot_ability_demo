@@ -20,37 +20,60 @@ var current_value: float = 0.0  				## 当前值
 var _cached_max: float = 0.0     			## 缓存的最大值
 
 # --- 信号 ---
-signal value_changed(current: float, max: float, percent: float)
+signal value_changed(current: float, max: float, percent: float, is_regen: bool)
 signal depleted()  # 归零
 signal full()      # 满值
 
-# --- 初始化 ---
-## 处理自动回复
-func _init(p_comp: GameplayAttributeComponent = null) -> void:
+# --- 逻辑 ---
+## 初始化 Vital 实例
+## 绑定到指定的属性组件并初始化数值
+## [param] p_comp: GameplayAttributeComponent 属性组件引用
+func initialize(p_comp: GameplayAttributeComponent) -> void:
 	_owner_comp = p_comp
-	# 初始化数值
+	# 初始化数值（必须在设置 _owner_comp 之后）
 	_update_cached_max()
 	current_value = _cached_max
-	
-	# 监听属性变化 (用于动态调整最大值)
-	if _owner_comp:
+	# 连接属性变化信号（确保 Vital 能响应属性变化）
+	if is_instance_valid(_owner_comp):
+		if _owner_comp.attribute_value_changed.is_connected(_on_attribute_changed):
+			_owner_comp.attribute_value_changed.disconnect(_on_attribute_changed)
 		_owner_comp.attribute_value_changed.connect(_on_attribute_changed)
 
-# --- 逻辑 ---
+func create_instance(p_comp: GameplayAttributeComponent) -> GameplayVital:
+	var instance : GameplayVital = duplicate(true)
+	instance.initialize(p_comp)
+	return instance
+
+## 处理恢复
+func process_regen(delta: float):
+	if regen_rate_attribute == &"": return
+	
+	var rate = _owner_comp.get_value(regen_rate_attribute)
+	if rate != 0:
+		modify_value(rate * delta, true)
+
 ## 修改值
 ## [param] amount: float 修改量（正数为增加，负数为减少）
-func modify_value(amount: float) -> void:
+## [param] emit_value_changed: bool 是否发射 value_changed 信号（默认 true）
+## 注意：depleted 和 full 信号始终会发射（如果条件满足）
+func modify_value(amount: float, is_regen: bool = false) -> void:
 	_update_cached_max()
 	var old_val = current_value
 	current_value = clampf(current_value + amount, 0.0, _cached_max)
 	
 	if old_val == current_value: return
+
+	value_changed.emit(current_value, _cached_max, get_percent(), is_regen)
 	
-	value_changed.emit(current_value, _cached_max, get_percent())
 	if current_value <= 0 and old_val > 0:
 		depleted.emit()
 	elif current_value >= _cached_max and old_val < _cached_max:
 		full.emit()
+
+## 获取最大值
+## [return] float 当前的最大值
+func get_max_value() -> float:
+	return _cached_max
 
 ## 获取百分比
 ## [return] float 百分比（0.0-1.0）

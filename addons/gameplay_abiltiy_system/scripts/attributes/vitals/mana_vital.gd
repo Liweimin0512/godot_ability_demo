@@ -11,9 +11,6 @@ func _init(p_comp: GameplayAttributeComponent = null) -> void:
 	max_value_attribute = &"max_mana"  # 依赖 "mana" 属性作为上限
 	# regen_rate_attribute = &"mana_regen"  # 可选：自动回复
 	
-	# 调用父类初始化
-	super(p_comp)
-
 ## 尝试消耗法力
 ## [param] amount: float 要消耗的法力值
 ## [return] bool 是否成功消耗
