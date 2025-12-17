@@ -4,9 +4,7 @@ extends Node3D
 
 @onready var vital_component: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
 
-## HealthVital 和 ManaVital 资源
-@export var health_vital_res: HealthVital = null
-@export var mana_vital_res: ManaVital = null
+@export var damage_strategy: DamageLogicStrategy = null
 
 func _ready() -> void:
 	if not is_instance_valid(player_data):
@@ -19,6 +17,11 @@ func _ready() -> void:
 	# 监听信号
 	vital_component.vital_value_changed.connect(_on_vital_changed)
 	vital_component.vital_depleted.connect(_on_vital_depleted)
+
+	## 设置自定义伤害策略（如果提供）
+	#if is_instance_valid(damage_strategy):
+		#DamageCalculator.set_strategy(damage_strategy)
+		#print("Using custom damage strategy: %s" % damage_strategy.get_script().get_path())
 
 	# 运行测试
 	await get_tree().create_timer(0.5).timeout
@@ -40,7 +43,16 @@ func _run_tests() -> void:
 	await get_tree().create_timer(1.0).timeout
 	
 	# 测试 4：自动回复（如果有配置）
-	_test_auto_regen()
+	await _test_auto_regen()
+	
+	# 测试 5：基础伤害计算
+	await _test_basic_damage()
+	
+	# 测试 6：策略切换
+	await _test_strategy_switch()
+
+	# 测试 7：防御力影响
+	await _test_defense_impact()
 
 ## 测试 1：初始状态
 func _test_initial_state() -> void:
@@ -126,6 +138,82 @@ func _test_auto_regen() -> void:
 
 	print("After 3 seconds: %.1f / %.1f" % [mana_vital.current_value, mana_vital._cached_max])
 	# 注意：如果 regen_rate_attribute 未配置，法力值不会自动回复
+
+## 测试 5：基础伤害计算
+func _test_basic_damage() -> void:
+	print("\n--- Test 5: Basic Damage Calculation ---")
+
+	var health_vital = vital_component.get_vital(&"health")
+	if not is_instance_valid(health_vital): return
+	
+	print("Initial Health: %.1f / %.1f" % [health_vital.current_value, health_vital.get_max_value()])
+	
+	# 创建伤害信息
+	var damage_info = DamageInfo.new(self, null, 50.0)  # 50 点基础伤害
+	
+	# 应用伤害
+	var final_damage = health_vital.apply_damage(damage_info, self)
+	
+	print("Base Damage: %.1f" % damage_info.base_damage)
+	print("Final Damage: %.1f" % final_damage)
+	print("After Damage: %.1f / %.1f" % [health_vital.current_value, health_vital.get_max_value()])
+
+	# 验证：最终伤害应该小于等于基础伤害（因为防御力）
+	assert(final_damage <= damage_info.base_damage, "Final damage should be <= base damage")
+
+## 测试 6：策略切换
+func _test_strategy_switch() -> void:
+	print("\n--- Test 6: Strategy Switch ---")
+	
+	var health_vital = vital_component.get_vital(&"health")
+	if not is_instance_valid(health_vital): return
+
+	# 使用默认策略
+	print("Using default strategy (SimpleDamageLogic)")
+	var damage_info1 = DamageInfo.new(self, null, 50.0)
+	var final_damage1 = health_vital.apply_damage(damage_info1, self)
+	print("Final Damage: %.1f" % final_damage1)
+	
+	await get_tree().process_frame
+
+	# 切换到自定义策略
+	if is_instance_valid(damage_strategy):
+		DamageCalculator.set_strategy(damage_strategy)
+		print("Switched to custom strategy")
+
+		var damage_info2 = DamageInfo.new(self, null, 50.0)
+		var final_damage2 = health_vital.apply_damage(damage_info2, self)
+		print("Final Damage (custom): %.1f" % final_damage2)
+
+## 测试 7：防御力影响
+func _test_defense_impact() -> void:
+	print("\n--- Test 7: Defense Impact ---")
+	
+	var health_vital = vital_component.get_vital(&"health")
+	if not is_instance_valid(health_vital): return
+	
+	# 记录初始防御力
+	var initial_defense = vital_component.get_value(&"defense")
+	print("Initial Defense: %.1f" % initial_defense)
+
+	# 测试 1：低防御力
+	var damage_info1 = DamageInfo.new(self, null, 50.0)
+	var final_damage1 = health_vital.apply_damage(damage_info1, self)
+	print("Damage with Defense %.1f: %.1f" % [initial_defense, final_damage1])
+	await get_tree().process_frame
+
+	# 增加防御力
+	vital_component.set_base_value(&"defense", initial_defense + 20.0)
+	await get_tree().process_frame
+	print("New Defense: %.1f" % vital_component.get_value(&"defense"))
+	
+	# 测试 2：高防御力
+	var damage_info2 = DamageInfo.new(self, null, 50.0)
+	var final_damage2 = health_vital.apply_damage(damage_info2, self)
+	print("Damage with Defense %.1f: %.1f" % [vital_component.get_value(&"defense"), final_damage2])
+
+	# 验证：防御力越高，受到的伤害越少
+	assert(final_damage2 < final_damage1, "Higher defense should reduce damage")
 
 func _on_vital_changed(vital_id: StringName, current: float, max: float, percent: float, is_regen: bool) -> void:
 	if is_regen: return

@@ -40,10 +40,7 @@ func apply_damage(damage_info: DamageInfo, owner_entity: Node) -> float:
 	if damage_info.base_damage <= 0: return 0.0
 
 	# 计算最终伤害（通过 DamageCalculator）
-	# 注意：DamageCalculator 在 Day 09 才会实现，这里先使用简单的减法公式
-	# 在 Day 09 中，我们会更新这部分代码
-	var defense = _owner_comp.get_value(&"defense")
-	var final_damage = max(1.0, damage_info.base_damage - defense)
+	var final_damage = DamageCalculator.calculate_final_damage(damage_info, _owner_comp)
 
 	# 应用伤害
 	if final_damage > 0:

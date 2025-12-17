@@ -17,6 +17,11 @@ func _ready() -> void:
 	inventory_ui.initialize(player_inventory)
 	var attribute_component : GameplayAttributeComponent = GameplayAbilitySystem.get_component_by_interface(player, "GameplayAttributeComponent")
 	attribute_dashboard.initialize(attribute_component, player.attribute_points_manager)
+
+	# 设置自定义伤害策略
+	var arpg_strategy = ARPGDamageLogic.new()
+	if is_instance_valid(arpg_strategy):
+		DamageCalculator.set_strategy(arpg_strategy)
 	
 func _unhandled_input(event) -> void:
 	if event.is_action_pressed("toggle_inventory"):

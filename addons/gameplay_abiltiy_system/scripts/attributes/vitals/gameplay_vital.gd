@@ -54,7 +54,7 @@ func process_regen(delta: float):
 
 ## 修改值
 ## [param] amount: float 修改量（正数为增加，负数为减少）
-## [param] emit_value_changed: bool 是否发射 value_changed 信号（默认 true）
+## [param] is_regen: bool 是否为自动回复（默认 false）
 ## 注意：depleted 和 full 信号始终会发射（如果条件满足）
 func modify_value(amount: float, is_regen: bool = false) -> void:
 	_update_cached_max()

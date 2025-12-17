@@ -115,10 +115,11 @@ func _initialize_vitals(vitals: Array[GameplayVital]) -> void:
 		vital_instance.depleted.connect(_on_vital_depleted.bind(vital_instance.vital_id))
 
 ## Vital 值变化回调
-## [param] vital_id: StringName Vital ID
 ## [param] current: float 当前值
 ## [param] max: float 最大值
 ## [param] percent: float 百分比
+## [param] is_regen: bool 是否为自动回复
+## [param] vital_id: StringName Vital ID（通过 bind 传入）
 func _on_vital_value_changed(current: float, max: float, percent: float, is_regen: bool, vital_id: StringName) -> void:
 	vital_value_changed.emit(vital_id, current, max, percent, is_regen)
 
