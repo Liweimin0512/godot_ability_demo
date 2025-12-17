@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://qvq6hbk5108d"]
 
 [ext_resource type="Script" uid="uid://cyyqof6fbsfyc" path="res://addons/gameplay_abiltiy_system/scripts/components/gameplay_attribute_component.gd" id="1_diqd3"]
-[ext_resource type="Script" uid="uid://cgixskqn508xq" path="res://scenes/test_attribute.gd" id="1_phd4c"]
+[ext_resource type="Script" uid="uid://cgixskqn508xq" path="res://addons/gameplay_abiltiy_system/examples/test_attribute.gd" id="1_phd4c"]
 [ext_resource type="Resource" uid="uid://cnhlvykhf6ty4" path="res://data/player_data/barbarian.tres" id="2_r74q7"]
 
 [node name="TestAttribute" type="Node3D"]
