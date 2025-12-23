@@ -96,4 +96,4 @@ func _on_attribute_changed(attr_id: StringName, val: float) -> void:
 	# 策略：最大值变大时，保持当前值不变，但截断上限
 	if current_value > _cached_max:
 		current_value = _cached_max
-		value_changed.emit(current_value, _cached_max, get_percent())
+		value_changed.emit(current_value, _cached_max, get_percent(), false)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://30orglekea3b"]
+[gd_scene load_steps=14 format=3 uid="uid://30orglekea3b"]
 
 [ext_resource type="PackedScene" uid="uid://0dbkas4m50et" path="res://scenes/room_lobby.tscn" id="1_jyhfs"]
 [ext_resource type="Script" uid="uid://ctchlggjlcgm8" path="res://scenes/main.gd" id="1_tefeu"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://cgv4kbrho80c8" path="res://addons/simple_inventory/src/widgets/inventory.tscn" id="7_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://hvwb1up23re2" path="res://ui/attribute_dashboard.tscn" id="8_tipki"]
 [ext_resource type="PackedScene" uid="uid://p05581p7kdka" path="res://ui/vital_hud.tscn" id="9_85g3d"]
+[ext_resource type="PackedScene" uid="uid://b4qtmgalki1a8" path="res://addons/gameplay_abiltiy_system/ui/tag_debug_panel.tscn" id="10_choun"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ubp1v"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -94,3 +95,13 @@ grow_vertical = 1
 
 [node name="VitalHUD" parent="UILayer/HUD" instance=ExtResource("9_85g3d")]
 layout_mode = 0
+
+[node name="TagDebugPanel" parent="." instance=ExtResource("10_choun")]
+anchors_preset = 4
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 0.0
+offset_top = -114.0
+offset_right = 506.0
+offset_bottom = 366.0
+grow_horizontal = 1

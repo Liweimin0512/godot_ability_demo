@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GameplayTag" load_steps=2 format=3 uid="uid://cluldcr6ay08j"]
+
+[ext_resource type="Script" uid="uid://0287xxc5l2rf" path="res://addons/gameplay_abiltiy_system/scripts/tags/gameplay_tag.gd" id="1_tl7i8"]
+
+[resource]
+script = ExtResource("1_tl7i8")
+id = &"state.invulnerable"
+display_name = "无敌"
+description = "免疫所有伤害"
+parent_tag_id = &"status"
+metadata/_custom_type_script = "uid://0287xxc5l2rf"

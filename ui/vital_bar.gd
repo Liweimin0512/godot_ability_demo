@@ -39,7 +39,7 @@ func _update_display() -> void:
 		return
 	
 	var current = vital.current_value
-	var max_val = vital._cached_max
+	var max_val = vital.get_max_value()
 	var percent = vital.get_percent()
 	
 	# 更新进度条
