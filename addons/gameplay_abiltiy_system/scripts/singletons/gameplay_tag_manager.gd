@@ -27,6 +27,17 @@ signal tag_added(target: Node, tag_id: StringName)
 ## 标签移除信号
 signal tag_removed(target: Node, tag_id: StringName)
 
+func initialize(tag_or_tags : Variant, recursive: bool = true) -> void:
+	if _initialized:
+		push_warning("已经初始化！")
+	_initialized = true
+	if tag_or_tags is GameplayTag:
+		register_tag(tag_or_tags)
+	elif tag_or_tags is Array:
+		register_tags(tag_or_tags)
+	elif tag_or_tags is String:
+		register_tags_from_directory(tag_or_tags, recursive)
+
 ## 注册单个标签资源
 ## [param] tag: GameplayTag 标签资源
 ## [returns] bool 是否注册成功
@@ -100,6 +111,7 @@ func register_tags_from_directory(dir_path: String, recursive: bool = true) -> i
 		file_name = dir.get_next()
 
 	dir.list_dir_end()
+	
 	# 构建继承和互斥关系缓存
 	if not _initialized:
 		_build_tag_relation_caches()

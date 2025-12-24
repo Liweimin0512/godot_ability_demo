@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="FilterTargetByTags" load_steps=2 format=3 uid="uid://dffdcngu1vvwl"]
+
+[ext_resource type="Script" uid="uid://fjmqbb85bmg8" path="res://addons/gameplay_abiltiy_system/scripts/filters/filter_target_by_tags.gd" id="1_nvteg"]
+
+[resource]
+script = ExtResource("1_nvteg")
+required_tags = Array[StringName]([&"Team.Enemy"])
+metadata/_custom_type_script = "uid://fjmqbb85bmg8"

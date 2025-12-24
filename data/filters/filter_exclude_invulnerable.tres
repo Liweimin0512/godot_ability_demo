@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="FilterTargetByTags" load_steps=2 format=3 uid="uid://55ovt34n3v17"]
+
+[ext_resource type="Script" uid="uid://fjmqbb85bmg8" path="res://addons/gameplay_abiltiy_system/scripts/filters/filter_target_by_tags.gd" id="1_ctjb0"]
+
+[resource]
+script = ExtResource("1_ctjb0")
+blocked_tags = Array[StringName]([&"State.Invulnerable", &"State.Dead"])
+metadata/_custom_type_script = "uid://fjmqbb85bmg8"
