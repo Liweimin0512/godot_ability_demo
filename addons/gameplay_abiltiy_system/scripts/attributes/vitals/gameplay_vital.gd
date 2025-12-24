@@ -57,18 +57,7 @@ func process_regen(delta: float):
 ## [param] is_regen: bool 是否为自动回复（默认 false）
 ## 注意：depleted 和 full 信号始终会发射（如果条件满足）
 func modify_value(amount: float, is_regen: bool = false) -> void:
-	_update_cached_max()
-	var old_val = current_value
-	current_value = clampf(current_value + amount, 0.0, _cached_max)
-	
-	if old_val == current_value: return
-
-	value_changed.emit(current_value, _cached_max, get_percent(), is_regen)
-	
-	if current_value <= 0 and old_val > 0:
-		depleted.emit()
-	elif current_value >= _cached_max and old_val < _cached_max:
-		full.emit()
+	_modify_value(amount, is_regen)
 
 ## 获取最大值
 ## [return] float 当前的最大值
@@ -86,6 +75,20 @@ func _update_cached_max() -> void:
 		push_error("Vital: _owner component is not valid!")
 		return
 	_cached_max = _owner_comp.get_value(max_value_attribute)
+
+func _modify_value(amount: float, is_regen: bool = false) -> void:
+	_update_cached_max()
+	var old_val = current_value
+	current_value = clampf(current_value + amount, 0.0, _cached_max)
+	
+	if old_val == current_value: return
+
+	value_changed.emit(current_value, _cached_max, get_percent(), is_regen)
+	
+	if current_value <= 0 and old_val > 0:
+		depleted.emit()
+	elif current_value >= _cached_max and old_val < _cached_max:
+		full.emit()
 
 ## 属性变化回调
 ## [param] attr_id: StringName 变化的属性ID

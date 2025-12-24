@@ -1,5 +1,5 @@
 @abstract
-extends Node
+extends Resource
 class_name GameplayEffect
 
 ## 游戏效果基类（抽象类）

@@ -9,4 +9,4 @@ class_name DamageLogicStrategy
 ## [param] damage_info: DamageInfo 伤害信息（包含基础伤害、攻击者等）
 ## [param] target_attributes: GameplayAttributeComponent 防御者的属性组件
 ## [return] float 最终伤害值
-@abstract func calculate(damage_info: DamageInfo, target_attributes: GameplayAttributeComponent) -> float
+@abstract func calculate(target: Node, instigator: Node, context: Dictionary) -> float

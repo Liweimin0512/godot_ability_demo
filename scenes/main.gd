@@ -27,28 +27,7 @@ func _ready() -> void:
 	var tag_count := TagManager.register_tags_from_directory("res://data/tags/")
 	print("Registered %d tags" % tag_count)
 	
-	# 手动添加标签
-	TagManager.add_tag(player, &"status.burn")
 
-	# 验证标签是否正确添加
-	TagManager.print_debug_status(player)
-
-	# 查看所有标签
-	var all_tags = TagManager.get_all_tags(player)
-	TagManager.print_debug_status(player)
-
-
-	# 查看标签引用计数
-	var count = TagManager.get_tag_count(player, &"status.burn")
-	print("Burn tag count: ", count)
-
-	# 测试继承查询
-	if TagManager.has_tag(player, &"status.debuff", true):
-		print("Player has a debuff status (inherited from status.burn)")
-
-	TagManager.add_tag(player, &"status.freeze")
-	TagManager.print_debug_status(player)
-	
 func _unhandled_input(event) -> void:
 	if event.is_action_pressed("toggle_inventory"):
 		if inventory_ui.visible:

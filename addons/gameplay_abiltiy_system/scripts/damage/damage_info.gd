@@ -11,6 +11,7 @@ var source_component: Node = null                ## 伤害的直接来源组件�
 ## 伤害属性
 var base_damage : float = 0.0
 var is_crit: bool = false                        ## 是否暴击
+var final_damage: float = 0.0
 
 func _init(
 		p_instigator: Node = null, 
