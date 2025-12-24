@@ -2,6 +2,7 @@ extends CharacterBody3D
 class_name Player
 
 @export var player_data : PlayerData
+@export var _attachment_points : Dictionary[StringName, BoneAttachment3D]
 
 @export_group("Movement")
 @export var speed: float = 5.0
@@ -83,6 +84,9 @@ func _test_damage() -> void:
 
 func get_inventory() -> C_Inventory:
 	return inventory_component
+
+func get_attachment_point(attachment_point: StringName) -> Node3D:
+	return _attachment_points.get(attachment_point, null)
 
 func _play_anim(anim_name: String) -> void:
 	if not is_instance_valid(animation_state_machine):

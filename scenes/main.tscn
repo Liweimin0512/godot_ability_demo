@@ -38,8 +38,13 @@ transform = Transform3D(1, 0, 0, 0, 0.17364822, 0.9848077, 0, -0.9848077, 0.1736
 
 [node name="RoomLobby" parent="." instance=ExtResource("1_jyhfs")]
 
-[node name="Player" parent="RoomLobby" instance=ExtResource("2_tbgi4")]
+[node name="Player" parent="RoomLobby" node_paths=PackedStringArray("_attachment_points") instance=ExtResource("2_tbgi4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.606604, 0.09957409, 5.87055)
+_attachment_points = {
+&"body": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/ChestAttachment"),
+&"head": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/HeadAttachment"),
+&"root": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/RootAttachment")
+}
 
 [node name="Teleporter" parent="RoomLobby" node_paths=PackedStringArray("target_room", "target") instance=ExtResource("3_tbgi4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1, 1.060358)
@@ -58,7 +63,7 @@ target = NodePath("../../RoomLobby/Teleporter")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
 
 [node name="UILayer" type="CanvasLayer" parent="."]
-layer = 128
+layer = 100
 
 [node name="HUD" type="Control" parent="UILayer"]
 layout_mode = 3

@@ -22,6 +22,8 @@ DamageCalculator="*res://addons/gameplay_abiltiy_system/scripts/singletons/damag
 TagManager="*res://addons/gameplay_abiltiy_system/scripts/singletons/gameplay_tag_manager.gd"
 AbilityEventBus="*res://addons/gameplay_abiltiy_system/scripts/singletons/ability_event_bus.gd"
 GameplayCueManager="*res://addons/gameplay_abiltiy_system/scripts/singletons/gameplay_cue_manager.gd"
+Panku="*res://addons/panku_console/console.tscn"
+ConsoleCommands="*res://scripts/singletons/console_commands.gd"
 
 [display]
 
@@ -33,7 +35,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gameplay_abiltiy_system/plugin.cfg", "res://addons/simple_inventory/plugin.cfg")
+enabled=PackedStringArray("res://addons/gameplay_abiltiy_system/plugin.cfg", "res://addons/panku_console/plugin.cfg", "res://addons/simple_inventory/plugin.cfg")
 
 [global_group]
 
