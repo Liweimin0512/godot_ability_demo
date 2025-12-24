@@ -33,7 +33,7 @@ func initialize(tag_or_tags : Variant, recursive: bool = true) -> void:
 	_initialized = true
 	if tag_or_tags is GameplayTag:
 		register_tag(tag_or_tags)
-	elif tag_or_tags is Array:
+	elif tag_or_tags is Array[GameplayTag]:
 		register_tags(tag_or_tags)
 	elif tag_or_tags is String:
 		register_tags_from_directory(tag_or_tags, recursive)

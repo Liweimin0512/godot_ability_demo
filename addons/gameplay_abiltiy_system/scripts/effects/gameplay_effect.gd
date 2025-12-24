@@ -25,7 +25,7 @@ class_name GameplayEffect
 ## 游戏提示（Cue），用于逻辑与表现分离
 ## 当效果应用成功时，会执行此 Cue 来播放表现（特效、音效、飘字等）
 ## 注意：Cue 系统将在 Day 15 详细讲解，这里先预留接口
-@export var cue: Resource = null  # 类型将在 Day 15 中定义为 GameplayCue
+@export var cue: GameplayCue = null
 
 func apply(target: Node, instigator: Node, context: Dictionary = {}) -> void:
 	# 1. 检查过滤器（如果被过滤，直接返回）
@@ -64,8 +64,12 @@ func _check_filters(target: Node, instigator: Node, context: Dictionary) -> bool
 
 	return true
 
+## 执行 Cue（逻辑与表现分离）
 func _execute_cue(target: Node, context: Dictionary) -> void:
-	pass
+	if not is_instance_valid(cue):
+		return
+	
+	GameplayCueManager.execute_cue(cue, target, context)
 
 func _apply_sub_effects(target: Node, instigator: Node, context: Dictionary) -> void:
 	for effect in sub_effects:

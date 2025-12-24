@@ -19,14 +19,21 @@ func _ready() -> void:
 	var tag_team_enemy : GameplayTag = GameplayTag.new()
 	tag_team_enemy.id = "Team.Enemy"
 	tag_team_enemy.display_name = "敌方队伍"
-	TagManager.initialize(tag_team_enemy)
+
+	var tag_state_invulnerable := GameplayTag.new()
+	tag_state_invulnerable.id = "state.invulnerable"
+	tag_state_invulnerable.display_name = "无敌"
+	
+	TagManager.initialize([
+		tag_team_enemy, tag_state_invulnerable
+	] as Array[GameplayTag])
 	TagManager.add_tag(enemy, "Team.Enemy")
 	
 	await get_tree().create_timer(0.5).timeout
 	_run_tests()
 
 func _run_tests() -> void:
-	print("\n=== Day 13: Testing Basic Effects ===")
+	print("\n=== Day 15: Testing Basic Effects ===")
 
 	# 测试 1：伤害效果
 	_test_damage_effect()
@@ -36,9 +43,12 @@ func _run_tests() -> void:
 	_test_heal_effect()
 	await get_tree().create_timer(1.0).timeout
 
+	print("\n=== Day 16: Testing Filter Functionality ===")
+
 	# 测试 1：标签过滤（target_blocked_tags）
 	_test_tag_filter()
 	await get_tree().create_timer(1.0).timeout
+	_test_filter_array()
 
 ## 测试 1：伤害效果
 func _test_damage_effect() -> void:
@@ -93,43 +103,95 @@ func _test_heal_effect() -> void:
 ## 测试 3：标签过滤
 func _test_tag_filter() -> void:
 	print("\n--- Test 3: Tag Filter (target_blocked_tags) ---")
-
-	var health_vital_player = player_vital_component.get_vital(&"health")
+	
 	var health_vital_enemy = enemy_vital_component.get_vital(&"health")
-
-	if not is_instance_valid(health_vital_player) or not is_instance_valid(health_vital_enemy):
+	if not is_instance_valid(health_vital_enemy):
 		return
-		
-	var initial_health_player = health_vital_player.current_value
-	var initial_health_enemy = health_vital_enemy.current_value
-
-	print("Player initial health: %.1f" % initial_health_player)
-	print("Enemy initial health: %.1f" % initial_health_enemy)
 	
-
-	var damage_effect = damage_effect_res.duplicate()
-	var filter_target_by_tags = FilterTargetByTags.new()
-	filter_target_by_tags.required_tags.append(
-		"Team.Enemy"
-	)
-	damage_effect.filters.append(
-		filter_target_by_tags
-	)
-	# 对玩家应用（不应该生效）
-	damage_effect.apply(player, player, {})
-	await get_tree().process_frame
-
-	# 对敌人应用（应该生效）
-	damage_effect.apply(enemy, player, {})
+	var initial_health = health_vital_enemy.current_value
+	print("Enemy initial health: %.1f" % initial_health)
+	
+	# 创建一个伤害效果，设置 target_blocked_tags
+	var damage_effect = GE_ApplyDamage.new()
+	damage_effect.damage_multiplier = 1.0
+	damage_effect.vital_id = &"health"
+	damage_effect.vital_comp_name = &"GameplayVitalAttributeComponent"
+	damage_effect.target_blocked_tags = [&"state.invulnerable"] as Array[StringName]
+	
+	# 先测试：对正常敌人应用（应该生效）
+	var context1 = {}
+	context1["instigator"] = player
+	damage_effect.apply(enemy, player, context1)
 	await get_tree().process_frame
 	
-	var final_health_player = health_vital_player.current_value
-	var final_health_enemy = health_vital_enemy.current_value
-
-	print("Player final health: %.1f" % final_health_player)
-	print("Enemy final health: %.1f" % final_health_enemy)
+	var health_after_normal = health_vital_enemy.current_value
+	print("Enemy health after normal damage: %.1f" % health_after_normal)
 	
-	# 验证：两个目标都应该受到伤害
-	assert(final_health_player == initial_health_player, "Player not should take damage")
-	assert(final_health_enemy < initial_health_enemy, "Enemy should take damage")
-	print("✅ Tag filter test passed: Both targets took damage")	
+	# 验证：应该受到伤害
+	assert(health_after_normal < initial_health, "Enemy should take damage")
+	
+	# 恢复血量
+	var damage_taken = initial_health - health_after_normal
+	health_vital_enemy.modify_value(damage_taken)
+	
+	# 给敌人添加免疫标签
+	TagManager.add_tag(enemy, &"state.invulnerable")
+	print("Added 'state.invulnerable' tag to enemy")
+	
+	# 再次应用伤害（应该被过滤）
+	var context2 = {}
+	context2["instigator"] = player
+	damage_effect.apply(enemy, player, context2)
+	await get_tree().process_frame
+	
+	var health_after_immune = health_vital_enemy.current_value
+	print("Enemy health after immune damage: %.1f" % health_after_immune)
+	
+	# 验证：应该没有受到伤害（因为免疫）
+	assert(abs(health_after_immune - initial_health) < 0.01, "Enemy should not take damage when immune")
+	print("✅ Tag filter test passed: Immune target blocked damage")
+	
+	# 清理：移除免疫标签
+	TagManager.remove_tag(enemy, &"state.invulnerable")
+
+## 测试 4：过滤器数组（Day 16）
+func _test_filter_array() -> void:
+	print("\n--- Test 4: Filter Array ---")
+	
+	var health_vital_enemy = enemy_vital_component.get_vital(&"health")
+	if not is_instance_valid(health_vital_enemy):
+		return
+	
+	var initial_health = health_vital_enemy.current_value
+	print("Enemy initial health: %.1f" % initial_health)
+	
+	# 创建一个过滤器：排除无敌目标
+	var filter = FilterTargetByTags.new()
+	filter.blocked_tags = [&"state.invulnerable"] as Array[StringName]
+	
+	# 创建伤害效果，使用过滤器数组
+	var damage_effect = GE_ApplyDamage.new()
+	damage_effect.damage_multiplier = 1.0
+	damage_effect.vital_id = &"health"
+	damage_effect.vital_comp_name = &"GameplayVitalAttributeComponent"
+	damage_effect.filters.append(filter)
+	
+	# 给敌人添加免疫标签
+	TagManager.add_tag(enemy, &"state.invulnerable")
+	print("Added 'state.invulnerable' tag to enemy")
+	
+	# 应用伤害（应该被过滤器过滤）
+	var context = {}
+	context["instigator"] = player
+	damage_effect.apply(enemy, player, context)
+	await get_tree().process_frame
+	
+	var final_health = health_vital_enemy.current_value
+	print("Enemy final health: %.1f" % final_health)
+	
+	# 验证：应该没有受到伤害（因为过滤器）
+	assert(abs(final_health - initial_health) < 0.01, "Enemy should not take damage when filtered")
+	print("✅ Filter array test passed: Filter blocked damage")
+	
+	# 清理：移除免疫标签
+	TagManager.remove_tag(enemy, &"state.invulnerable")

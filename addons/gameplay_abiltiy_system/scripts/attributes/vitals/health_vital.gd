@@ -41,6 +41,9 @@ func apply_damage(damage_info: DamageInfo, owner_entity: Node) -> float:
 	if not is_alive: return 0.0
 	# 发出伤害接收信号（在计算减免之前）
 	damage_received.emit(damage_info)
+	AbilityEventBus.trigger_game_event(&"damage_received", {
+		"damage_info": damage_info
+	})
 	
 	# 在应用伤害前被BUFF修改为0或更少
 	var final_damage = damage_info.final_damage
@@ -52,6 +55,9 @@ func apply_damage(damage_info: DamageInfo, owner_entity: Node) -> float:
 	
 	# UI系统可以监听这个信号来显示伤害飘字
 	damage_applied.emit(damage_info, final_damage)
+	AbilityEventBus.trigger_game_event(&"damage_applied", {
+		"damage_info": damage_info
+	})
 
 	# 处理死亡
 	if not is_alive:

@@ -20,6 +20,8 @@ config/icon="res://icon.svg"
 GameplayAbilitySystem="*res://addons/gameplay_abiltiy_system/scripts/singletons/gameplay_ability_system.gd"
 DamageCalculator="*res://addons/gameplay_abiltiy_system/scripts/singletons/damage_calculator.gd"
 TagManager="*res://addons/gameplay_abiltiy_system/scripts/singletons/gameplay_tag_manager.gd"
+AbilityEventBus="*res://addons/gameplay_abiltiy_system/scripts/singletons/ability_event_bus.gd"
+GameplayCueManager="*res://addons/gameplay_abiltiy_system/scripts/singletons/gameplay_cue_manager.gd"
 
 [display]
 
