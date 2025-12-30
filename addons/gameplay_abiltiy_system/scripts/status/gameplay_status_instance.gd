@@ -20,6 +20,16 @@ var _cue_instance: GameplayCue = null  ## 保存克隆的 Cue 实例（用于停
 ## 状态完成信号（瞬时状态立即完成，持续状态在移除时完成）发出此信号
 signal status_completed(status_instance: GameplayStatusInstance)
 
+func _init(gsd: GameplayStatusData, p_owner_component: GameplayStatusComponent, p_instigator: Node, p_stacks: int) -> void:
+	status_data = gsd
+	owner_component = p_owner_component
+	instigator = p_instigator
+	stacks = p_stacks
+	
+	# 初始化持续时间
+	if is_instance_valid(status_data):
+		_remaining_duration = status_data.duration if status_data.duration > 0 else -1.0
+
 ## 状态被施加时，应用所有效果
 func apply(context: Dictionary = {}) -> void:
 	# 保存上下文（用于周期性效果和移除时效果）
@@ -198,6 +208,9 @@ func _execute_status_cue() -> void:
 	if not is_instance_valid(owner_component) or not is_instance_valid(status_data):
 		return
 		
+	if not is_instance_valid(status_data.cue):
+		return
+	
 	# 【关键】克隆 Cue 实例（避免直接修改配置数据）
 	# 使用 deep 复制，确保所有 Cue 组件也被克隆
 	_cue_instance = status_data.cue.duplicate(true) as GameplayCue
