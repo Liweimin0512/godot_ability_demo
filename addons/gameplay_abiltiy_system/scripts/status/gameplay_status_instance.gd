@@ -120,6 +120,20 @@ func add_stack(amount: int = 1, is_refresh_duration: bool = true) -> void:
 	if is_refresh_duration:
 		refresh_duration()
 
+## 处理事件（用于事件监听型效果）
+## 此方法用于处理通过统一事件系统触发的事件
+func handle_event(event_id: StringName, context: Dictionary) -> void:
+	# 检查状态是否应该响应这个事件
+	if not status_data.can_trigger_on_event(event_id):
+		return
+
+	# 应用事件触发型效果
+	var event_context = context.duplicate()
+	event_context["stacks"] = stacks
+	if not event_context.has("source_id"):
+		event_context["source_id"] = _get_source_instance_id()
+	_apply_effects(status_data.event_triggered_effects, event_context)
+
 ## 刷新持续时间
 func refresh_duration() -> void:
 	if status_data.duration > 0:

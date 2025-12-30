@@ -13,7 +13,6 @@ metadata/_custom_type_script = "uid://cr1357dotaqah"
 
 [sub_resource type="Resource" id="Resource_46klo"]
 script = ExtResource("4_rjume")
-damage_multiplier = 0.5
 damage_strategy = SubResource("Resource_hf3f3")
 metadata/_custom_type_script = "uid://cra1yv70jj5sn"
 

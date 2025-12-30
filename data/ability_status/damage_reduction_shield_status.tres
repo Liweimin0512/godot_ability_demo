@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=7 format=3 uid="uid://bn5vcaouea28f"]
+
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="1_r1j4p"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="2_0e8uw"]
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="2_hl5q6"]
+[ext_resource type="Script" uid="uid://cm2md6dyr4e7g" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_modify_incoming_damage.gd" id="3_8d7yw"]
+[ext_resource type="Texture2D" uid="uid://cieo4b66xwpa5" path="res://assets/textures/damage_reduction_shield.tres" id="4_h64hi"]
+
+[sub_resource type="Resource" id="Resource_oo0kp"]
+script = ExtResource("3_8d7yw")
+metadata/_custom_type_script = "uid://cm2md6dyr4e7g"
+
+[resource]
+script = ExtResource("2_hl5q6")
+status_id = &"damage_reduction_shield"
+status_display_name = "减伤护盾"
+status_description = "每次受到伤害前，将伤害减少 50%。"
+duration = 30.0
+icon = ExtResource("4_h64hi")
+tags = Array[StringName]([&"status.buff", &"defense.shield"])
+trigger_on_events = Array[StringName]([&"damage_received"])
+event_triggered_effects = Array[ExtResource("1_r1j4p")]([SubResource("Resource_oo0kp")])
+priority = 1
+metadata/_custom_type_script = "uid://8u46anns2vhm"
