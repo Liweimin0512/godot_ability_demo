@@ -27,6 +27,10 @@ class_name GameplayEffect
 ## 注意：Cue 系统将在 Day 15 详细讲解，这里先预留接口
 @export var cue: GameplayCue = null
 
+## 应用效果（核心入口）
+## [param] target: Node 目标节点
+## [param] instigator: Node 施法者节点
+## [param] context: 效果执行上下文
 func apply(target: Node, instigator: Node, context: Dictionary = {}) -> void:
 	# 1. 检查过滤器（如果被过滤，直接返回）
 	if not _check_filters(target, instigator, context):
@@ -41,6 +45,17 @@ func apply(target: Node, instigator: Node, context: Dictionary = {}) -> void:
 
 	# 4. 递归应用子效果（如果启用自动应用）
 	_apply_sub_effects(target, instigator, context)
+
+## 移除效果（核心入口）
+## [param] target: Node 目标节点
+## [param] instigator: Node 施法者节点
+## [param] context: 效果执行上下文
+func remove(target: Node, instigator: Node, context: Dictionary = {}) -> void:
+	# 1. 执行具体移除逻辑（子类实现，默认空实现）
+	_remove(target, instigator, context)
+	
+	# 2. 递归移除子效果
+	_remove_sub_effects(target, instigator, context)
 
 ## 检查过滤器
 func _check_filters(target: Node, instigator: Node, context: Dictionary) -> bool:
@@ -75,4 +90,27 @@ func _apply_sub_effects(target: Node, instigator: Node, context: Dictionary) -> 
 	for effect in sub_effects:
 		effect.apply(target, instigator, context)
 
+## 移除子效果（内部方法，供基类和子类使用）
+## [param] target: Node 目标节点
+## [param] instigator: Node 施法者节点
+## [param] context: 上下文信息
+func _remove_sub_effects(target: Node, instigator: Node, context: Dictionary) -> void:
+	for effect in sub_effects:
+		if not is_instance_valid(effect):
+			continue
+		# 克隆子效果实例
+		var sub_effect_inst = effect.duplicate(true) as GameplayEffect
+		if not is_instance_valid(sub_effect_inst):
+			continue
+		
+		sub_effect_inst.remove(target, instigator, context)
+
 @abstract func _apply(target: Node, instigator: Node, context: Dictionary)  -> void
+
+## [子类重写] 移除效果的具体实现
+## [param] target: Node 目标节点
+## [param] instigator: Node 施法者节点
+## [param] context: 上下文信息
+func _remove(_target: Node, _instigator: Node, _context: Dictionary) -> void:
+	# 默认空实现，大多数效果不需要移除逻辑
+	pass

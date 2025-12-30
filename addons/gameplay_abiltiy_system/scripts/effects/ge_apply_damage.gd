@@ -24,11 +24,14 @@ func _apply(target: Node, instigator: Node, context: Dictionary) -> void:
 	var vital_comp = GameplayAbilitySystem.get_component_by_interface(target, vital_comp_name)
 	var health_vital: HealthVital = vital_comp.get_vital(vital_id)
 	
+	# 直接从 context Dictionary 读取
+	var stacks = context.get("stacks", 1)
+	
 	# 2. 计算最终伤害
 	var final_damage = DamageCalculator.calculate_final_damage(target, instigator, context, damage_strategy)
 	
 	# 3. 创建 DamageInfo
-	var damage_info = DamageInfo.new(instigator, context.get("source_node", null), final_damage)
+	var damage_info = DamageInfo.new(instigator, context.get("source_node", null), final_damage * stacks)
 	damage_info.final_damage = damage_info.base_damage
 	
 	# 4. 应用伤害（由 HealthVital 负责）
