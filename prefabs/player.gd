@@ -47,7 +47,13 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, direction.z * speed, acceleration * delta)
 		
 		# 4. 旋转逻辑：让 Visuals 平滑转向移动方向
-		var target_angle = atan2(input_dir.x, input_dir.y)
+		# 注意：模型朝向 -Z（Godot 默认前方）
+		# - input_dir.x 是左右（对应 3D 的 X 轴，正值为右）
+		# - input_dir.y 是前后（对应 3D 的 Z 轴，正值为前，但在 2D 输入映射中是 Y）
+		# 当 input_dir.y = 1（向上键，向前）时，应该朝向 -Z
+		# 由于模型从 +Z 改为 -Z（旋转了 180 度），角度需要加 π
+		var base_angle = atan2(input_dir.x, input_dir.y)
+		var target_angle = base_angle + PI
 		visuals.rotation.y = lerp_angle(visuals.rotation.y, target_angle, rotation_speed * delta)
 	else:
 		# 停止逻辑：利用 move_toward 实现平滑减速 (惯性停车)
@@ -87,6 +93,11 @@ func get_inventory() -> C_Inventory:
 
 func get_attachment_point(attachment_point: StringName) -> Node3D:
 	return _attachment_points.get(attachment_point, null)
+
+func get_facing_angle() -> float:
+	if is_instance_valid(visuals) and visuals is Node3D:
+		return visuals.rotation.y
+	return 0.0
 
 func _play_anim(anim_name: String) -> void:
 	if not is_instance_valid(animation_state_machine):

@@ -234,7 +234,11 @@ func _on_add_status_pressed() -> void:
 	
 	# 应用状态
 	var player = get_tree().get_first_node_in_group("Player")
-	_selected_component.apply_status(status_data, player)
+	var facing_angle : float = _selected_entity.get_facing_angle() if _selected_entity.has_method("get_facing_angle") else 0.0
+	var context : Dictionary = {
+		"facing_angle": facing_angle
+	}
+	_selected_component.apply_status(status_data, player, 1, context)
 	
 	# 更新显示
 	_update_status_display()
