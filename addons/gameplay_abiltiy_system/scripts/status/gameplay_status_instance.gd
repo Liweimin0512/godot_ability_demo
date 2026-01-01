@@ -234,21 +234,15 @@ func _execute_status_cue() -> void:
 		
 	# 执行克隆的 Cue 实例（Manager 会处理挂点计算）
 	GameplayCueManager.execute_cue(_cue_instance, owner_component.get_parent(), {})
-		
+	
 ## 停止状态 Cue（清理视觉反馈）
 func _stop_status_cue() -> void:
 	if not is_instance_valid(_cue_instance):
 		# 如果没有保存的 Cue 实例，说明可能没有执行过 Cue，直接返回
 		return
 		
-	# 【关键】使用克隆的 Cue 实例停止持续效果
-	# 遍历所有 Cue 组件并停止持续效果
-	for cue_component in _cue_instance.cues:
-		if not is_instance_valid(cue_component):
-			continue
-		# 如果 Cue 组件实现了 stop 方法，调用它
-		if cue_component.has_method("stop"):
-			cue_component.stop(owner_component.get_parent())
+	# 停止克隆的 Cue 实例（Manager 会处理挂点计算）
+	GameplayCueManager.stop_cue(_cue_instance, owner_component.get_parent(), {})
 
 func _get_source_instance_id() -> StringName:
 	return "status." + str(get_instance_id())

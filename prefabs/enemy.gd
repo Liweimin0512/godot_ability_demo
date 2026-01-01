@@ -4,6 +4,7 @@ extends CharacterBody3D
 
 # 预留给掉落物的插槽 (稍后制作)
 @export var loot_scene: PackedScene 
+@export var _attachment_points : Dictionary[StringName, BoneAttachment3D]
 
 # 简单的生命值
 var hp: int = 3
@@ -28,6 +29,11 @@ func take_damage(amount: int) -> void:
 	
 	if hp <= 0:
 		die()
+		
+func get_attachment_point(attachment_point: StringName) -> Node3D:
+	if _attachment_points.has(attachment_point):
+		return _attachment_points.get(attachment_point, null)
+	return get_node_or_null("Skeleton_Warrior") as Node3D
 
 func die() -> void:
 	# 1. 生成掉落物 (稍后实现)

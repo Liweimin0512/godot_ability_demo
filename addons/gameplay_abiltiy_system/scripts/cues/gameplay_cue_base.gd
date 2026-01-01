@@ -29,6 +29,8 @@ func execute(target: Node, location: Vector3, context: Dictionary = {}) -> void:
 func stop(target: Node) -> void:
 	_stop(target)
 
+func update(_delta: float) -> void: pass
+
 ## [子类重写] 执行 Cue 的具体实现
 @abstract func _execute(_target: Node, _location: Vector3, _context: Dictionary) -> void
 ## [子类重写] 停止 Cue 的具体实现

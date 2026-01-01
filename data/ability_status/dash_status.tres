@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=7 format=3 uid="uid://wi5hl2sjew3n"]
+[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=8 format=3 uid="uid://wi5hl2sjew3n"]
 
 [ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="1_xhymi"]
+[ext_resource type="Resource" uid="uid://7epxb5iuexp6" path="res://data/cues/dash_trail_cue.tres" id="2_57rrq"]
 [ext_resource type="Texture2D" uid="uid://c6vnemnbp05ir" path="res://assets/textures/dash.tres" id="2_qh8jn"]
 [ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="2_unrqj"]
 [ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="3_krgsm"]
@@ -22,4 +23,5 @@ icon = ExtResource("2_qh8jn")
 tags = Array[StringName]([&"state.invulnerable", &"state.rooted"])
 period = 0.01
 periodic_effects = Array[ExtResource("1_xhymi")]([SubResource("Resource_b252k")])
+cue = ExtResource("2_57rrq")
 metadata/_custom_type_script = "uid://8u46anns2vhm"
