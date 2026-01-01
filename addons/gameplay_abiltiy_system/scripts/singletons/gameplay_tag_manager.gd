@@ -392,7 +392,7 @@ func get_tag_inheritance_chain(tag_id: StringName) -> Array[StringName]:
 ## [param] tag_id: StringName 标签ID
 ## [returns] Array[StringName] 互斥标签列表
 func get_tag_exclusions(tag_id: StringName) -> Array[StringName]:
-	return _tag_exclusion_cache.get(tag_id, []).duplicate()
+	return _tag_exclusion_cache.get(tag_id, [] as Array[StringName]).duplicate()
 
 ## 获取标签的详细资源（用于 UI 渲染）
 ## [param] tag_id: StringName 标签ID

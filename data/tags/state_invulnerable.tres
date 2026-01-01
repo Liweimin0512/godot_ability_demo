@@ -8,4 +8,5 @@ id = &"state.invulnerable"
 display_name = "无敌"
 description = "免疫所有伤害"
 parent_tag_id = &"status"
+mutually_exclusive_tags = Array[StringName]([&"state.stunned"])
 metadata/_custom_type_script = "uid://0287xxc5l2rf"

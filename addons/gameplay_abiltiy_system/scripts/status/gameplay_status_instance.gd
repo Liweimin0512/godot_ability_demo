@@ -51,6 +51,9 @@ func apply(context: Dictionary = {}) -> void:
 	if status_data.period > 0.0:
 		_periodic_timer = 0.0
 
+	# 【关键】在应用状态前，先移除互斥状态
+	_remove_mutually_exclusive_statuses()
+
 	# 应用状态标签（标签系统集成）
 	_apply_status_tags()
 
@@ -216,6 +219,28 @@ func _remove_status_tags() -> void:
 	for tag_id in status_data.tags:
 		if tag_id != &"":
 			TagManager.remove_tag(owner_component.get_parent(), tag_id)
+
+## 移除互斥状态（状态系统层面的互斥处理）
+func _remove_mutually_exclusive_statuses() -> void:
+	if not is_instance_valid(owner_component) or not is_instance_valid(status_data):
+		return
+
+	var target = owner_component.get_parent()
+	if not is_instance_valid(target):
+		return
+
+	# 获取当前状态的所有标签的互斥标签
+	var tags_to_remove: Array[StringName] = []
+	for tag_id in status_data.tags:
+		if tag_id == &"":
+			continue
+		# 获取该标签的所有互斥标签
+		var exclusions = TagManager.get_tag_exclusions(tag_id)
+		tags_to_remove.append_array(exclusions)
+
+	# 移除所有带互斥标签的状态
+	if not tags_to_remove.is_empty():
+		owner_component.remove_statuses_by_tags(tags_to_remove)
 
 ## 执行状态 Cue（视觉反馈）
 func _execute_status_cue() -> void:
