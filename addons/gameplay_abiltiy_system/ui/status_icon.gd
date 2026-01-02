@@ -71,28 +71,14 @@ func _build_tooltip_text(status_instance: GameplayStatusInstance, status_data: G
 
 	# 持续时间
 	if status_data.duration > 0:
-		var remaining_time = status_instance._remaining_duration
+		var remaining_time = status_instance.remaining_duration
 		text += "剩余时间: %.1f 秒\n" % remaining_time
 
 	elif status_data.duration == -1:
 		text += "持续时间: 永久\n"
-
-	# 周期
-	if status_data.period > 0:
-		text += "周期: %.1f 秒\n" % status_data.period
 
 	# 标签
 	if not status_data.tags.is_empty():
 		text += "标签: %s\n" % ", ".join(status_data.tags.map(func(t): return str(t)))
 
 	return text
-
-	
-	
-	
-	
-	
-	
-	
-	
-	

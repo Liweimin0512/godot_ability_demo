@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=11 format=3 uid="uid://v7ydg5bj5oy2"]
+[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=16 format=3 uid="uid://v7ydg5bj5oy2"]
 
 [ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="1_rqatu"]
 [ext_resource type="Texture2D" uid="uid://ctmfrfxchg2hp" path="res://assets/textures/poison.tres" id="2_3lrcj"]
@@ -8,15 +8,28 @@
 [ext_resource type="Resource" uid="uid://caa0nf257oe8n" path="res://data/cues/poison_particle_cue.tres" id="3_ctl8m"]
 [ext_resource type="Script" uid="uid://cra1yv70jj5sn" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_apply_damage.gd" id="4_fj50j"]
 [ext_resource type="Script" uid="uid://6mcxpdojhh7u" path="res://addons/gameplay_abiltiy_system/scripts/cues/gameplay_cue.gd" id="4_u7xps"]
+[ext_resource type="Script" uid="uid://ctnmjf6pyjfeu" path="res://addons/gameplay_abiltiy_system/scripts/status/features/status_feature.gd" id="5_eyhgn"]
+[ext_resource type="Script" uid="uid://dwtrlt75hktyr" path="res://addons/gameplay_abiltiy_system/scripts/status/stacking/stacking_intensity.gd" id="8_ctl8m"]
+[ext_resource type="Script" uid="uid://pk38rnciw0o5" path="res://addons/gameplay_abiltiy_system/scripts/status/features/feature_periodic_effects.gd" id="8_lr0o5"]
 
 [sub_resource type="Resource" id="Resource_lr0o5"]
 script = ExtResource("4_u7xps")
 cues = Array[ExtResource("2_eyhgn")]([ExtResource("3_ctl8m")])
 metadata/_custom_type_script = "uid://6mcxpdojhh7u"
 
-[sub_resource type="Resource" id="Resource_eyhgn"]
+[sub_resource type="Resource" id="Resource_8tmh0"]
 script = ExtResource("4_fj50j")
+damage_multiplier = 0.2
 metadata/_custom_type_script = "uid://cra1yv70jj5sn"
+
+[sub_resource type="Resource" id="Resource_0cv5n"]
+script = ExtResource("8_lr0o5")
+periodic_effects = Array[ExtResource("1_rqatu")]([SubResource("Resource_8tmh0")])
+metadata/_custom_type_script = "uid://pk38rnciw0o5"
+
+[sub_resource type="Resource" id="Resource_u7xps"]
+script = ExtResource("8_ctl8m")
+metadata/_custom_type_script = "uid://dwtrlt75hktyr"
 
 [resource]
 script = ExtResource("2_t8ss4")
@@ -26,9 +39,8 @@ status_description = "持续受到毒素伤害"
 duration = 8.0
 icon = ExtResource("2_3lrcj")
 tags = Array[StringName]([&"status.debuff", &"element.poison", &"status.poison", &"state.stunned"])
-period = 1.0
-periodic_effects = Array[ExtResource("1_rqatu")]([SubResource("Resource_eyhgn")])
-stacking_policy = 0
+features = Array[ExtResource("5_eyhgn")]([SubResource("Resource_0cv5n")])
+stacking_policy = SubResource("Resource_u7xps")
 max_stacks = 5
 priority = 1
 cue = SubResource("Resource_lr0o5")

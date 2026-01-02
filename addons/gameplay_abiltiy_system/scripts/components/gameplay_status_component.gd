@@ -132,17 +132,11 @@ func _apply_stacking_for_existing_status(status_id: StringName, gsd: GameplaySta
 	if not is_instance_valid(existing_instance):
 		_active_statuses.erase(status_id)
 		return false
-
-	match gsd.stacking_policy:
-		GameplayStatusData.StackingPolicy.REFRESH_DURATION:
-			existing_instance.refresh_duration()
-		GameplayStatusData.StackingPolicy.STACK_INTENSITY:
-			existing_instance.add_stack(stacks, true)
-			status_stacked.emit(status_id, existing_instance.stacks)
-		GameplayStatusData.StackingPolicy.ACCUMULATE_DURATION:
-			existing_instance.accumulate_duration()
-		GameplayStatusData.StackingPolicy.IGNORE:
-			pass
+	
+	# 使用策略模式处理堆叠
+	if is_instance_valid(gsd) and is_instance_valid(gsd.stacking_policy):
+		var context = {}
+		return gsd.stacking_policy.handle_stacking(existing_instance, gsd, stacks, context)
 
 	return true
 
@@ -171,7 +165,7 @@ func _create_and_apply_new_status_instance(gsd: GameplayStatusData, instigator: 
 	var status_id: StringName = gsd.status_id
 	
 	# 检查是否需要监听事件
-	if not gsd.trigger_on_events.is_empty():
+	if gsd.has_event_listening():
 		_has_event_listening_statuses = true
 
 	# 仅当状态 ID 非空且有持续时间时才记录到激活状态表
@@ -195,9 +189,9 @@ func _create_and_apply_new_status_instance(gsd: GameplayStatusData, instigator: 
 ## 更新事件监听状态（检查是否还有需要监听事件的状态）
 func _update_event_listening_status() -> void:
 	_has_event_listening_statuses = false
-	for instance in _active_statuses.values():
+	for instance : GameplayStatusInstance in _active_statuses.values():
 		if is_instance_valid(instance) and is_instance_valid(instance.status_data):
-			if not instance.status_data.trigger_on_events.is_empty():
+			if instance.has_event_listening():
 				_has_event_listening_statuses = true
 				break
 
