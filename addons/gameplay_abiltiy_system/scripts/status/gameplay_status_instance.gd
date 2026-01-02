@@ -111,6 +111,7 @@ func add_stack(amount: int = 1, is_refresh_duration: bool = true) -> void:
 		var context = _cached_context.duplicate()
 		context["source_id"] = _get_source_instance_id()
 		_apply_effects(status_data.remove_effects, context)
+		_remove_effects(status_data.apply_effects, context)
 
 		# 2. 增加层数
 		stacks = min(stacks + amount, status_data.max_stacks)
