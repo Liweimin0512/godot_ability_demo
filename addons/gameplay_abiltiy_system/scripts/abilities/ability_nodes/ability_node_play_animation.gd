@@ -1,4 +1,4 @@
-extends AbilityNodeBase
+extends 
 class_name AbilityNodePlayAnimation
 
 enum CastTargetType{
