@@ -108,11 +108,15 @@ func get_facing_angle() -> float:
 		return visuals.rotation.y
 	return 0.0
 
-func _play_anim(anim_name: String) -> void:
+func play_animation(anim_name : StringName, anim_speed: float = 1.0) -> void:
+	_play_anim(anim_name, anim_speed)
+
+func _play_anim(anim_name: String, anim_speed: float = 1.0) -> void:
 	if not is_instance_valid(animation_state_machine):
 		animation_state_machine = animation_tree.get("parameters/StateMachine/playback")
 	if not is_instance_valid(animation_state_machine): return
 	animation_state_machine.travel(anim_name)
+	animation_tree.set("parameters/TimeScale/scale", anim_speed)
 	
 func _set_movement_blend_position(blend_position: float) -> void:
 	animation_tree.set("parameters/StateMachine/movement/blend_position", blend_position)
