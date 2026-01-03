@@ -27,6 +27,10 @@ func has_var(key: String) -> Variant:
 func erase_var(key: String) -> Variant:
 	return _data.erase(key)
 
+## [调试] 获取所有变量（用于调试面板）
+func get_all_vars() -> Dictionary:
+	return _data.duplicate()
+
 func set_node_data(node: BTNode, value: Variant) -> void:
 	_node_memory[node] = value
 
@@ -35,3 +39,17 @@ func get_node_data(node: BTNode, default: Variant = null) -> Variant:
 
 func erase_node_data(node: BTNode) -> void:
 	_node_memory.erase(node)
+
+## [调试] 获取所有节点数据（用于调试面板）
+## 返回 Array[Dictionary]，每个 Dictionary 包含 node_name 和 data
+func get_all_node_data() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for node in _node_memory.keys():
+		if is_instance_valid(node):
+			var node_name = str(node)
+			result.append({
+				"node_name": node_name,
+				"data": _node_memory[node],
+				"node_ref": node  # 保留引用用于后续操作
+			})
+	return result

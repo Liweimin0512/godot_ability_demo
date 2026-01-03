@@ -101,6 +101,10 @@ func evaluate_interruption(observer: BTNode, new_status: int):
 				if _is_higher_priority(observer):
 					_abort_execution(observer)
 
+## 获取执行历史（用于调试面板）
+func get_execution_history() -> Array[Dictionary]:
+	return execution_history.duplicate()
+
 ## 内部方法：记录执行历史
 func _record_execution(node: BTNode, status: int) -> void:
 	if not is_instance_valid(node):

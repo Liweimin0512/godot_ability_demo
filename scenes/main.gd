@@ -7,6 +7,7 @@ const TRANSITION_TIME = 1.5
 @onready var inventory_ui: MarginContainer = $UILayer/HUD/inventory
 @onready var camera: Camera3D = $Camera3D
 @onready var attribute_dashboard: AttributeDashboard = $UILayer/HUD/AttributeDashboard
+@onready var bt_debug_panel: BTDebugPanel = $BtDebugPanel
 
 func _ready() -> void:
 	# 初始化：游戏开始时，把摄像机瞬间定格在第一个房间
@@ -26,7 +27,6 @@ func _ready() -> void:
 	# 注册标签系统
 	var tag_count := TagManager.register_tags_from_directory("res://data/tags/")
 	print("Registered %d tags" % tag_count)
-	
 
 func _unhandled_input(event) -> void:
 	if event.is_action_pressed("toggle_inventory"):
@@ -34,6 +34,12 @@ func _unhandled_input(event) -> void:
 			inventory_ui.hide()
 		else:
 			inventory_ui.open()
+
+	# 行为树调试面板快捷键
+	if event.is_action_pressed(bt_debug_panel.toggle_action):
+		if is_instance_valid(bt_debug_panel):
+			bt_debug_panel.toggle_visibility()
+		get_viewport().set_input_as_handled()
 
 func transition_to_room(target_room: DungeonRoom, target_position: Vector3) -> void:
    # 1. 冻结玩家 (禁止乱动)

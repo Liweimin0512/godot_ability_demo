@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://30orglekea3b"]
+[gd_scene load_steps=16 format=3 uid="uid://30orglekea3b"]
 
 [ext_resource type="PackedScene" uid="uid://0dbkas4m50et" path="res://scenes/room_lobby.tscn" id="1_jyhfs"]
 [ext_resource type="Script" uid="uid://ctchlggjlcgm8" path="res://scenes/main.gd" id="1_tefeu"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://p05581p7kdka" path="res://ui/vital_hud.tscn" id="9_85g3d"]
 [ext_resource type="PackedScene" uid="uid://b4qtmgalki1a8" path="res://addons/gameplay_abiltiy_system/ui/tag_debug_panel.tscn" id="10_choun"]
 [ext_resource type="PackedScene" uid="uid://ckolr7skejo8m" path="res://addons/gameplay_abiltiy_system/ui/status_debug_panel.tscn" id="10_ya4ey"]
+[ext_resource type="PackedScene" uid="uid://cefhe6w0nwjsu" path="res://addons/gameplay_abiltiy_system/ui/bt_debug_panel.tscn" id="12_eb6dy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ubp1v"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -120,3 +121,5 @@ offset_top = -114.0
 offset_right = 506.0
 offset_bottom = 366.0
 grow_horizontal = 1
+
+[node name="BtDebugPanel" parent="." instance=ExtResource("12_eb6dy")]

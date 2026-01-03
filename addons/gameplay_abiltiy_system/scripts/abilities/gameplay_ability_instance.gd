@@ -172,6 +172,9 @@ func handle_forgotten(ability_comp: Node, status_comp: Node) -> void:
 		feature.on_forgotten(self, ability_comp, status_comp)
 
 #region ========== 行为树管理 ==========
+func get_bt_instance() -> BTInstance:
+	return _bt_instance
+
 func get_blackboard() -> BTBlackboard:
 	return _blackboard
 

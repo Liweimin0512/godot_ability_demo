@@ -85,3 +85,15 @@ func _has_var(instance: BTInstance, key: String) -> bool:
 
 func _clear_var(instance: BTInstance, key: String) -> void:
 	instance.blackboard.erase_var(key)
+
+func _get_node_name() -> StringName:
+	return node_id if not node_id.is_empty() else get_class()
+
+func _to_string() -> String:
+	var script = get_script()
+	if script:
+		var script_name = script.get_global_name()
+		if script_name != "":
+			return script_name
+
+	return get_class()
