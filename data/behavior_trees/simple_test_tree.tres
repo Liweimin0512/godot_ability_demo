@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="BTSequence" load_steps=8 format=3 uid="uid://gy3v1qehkrd3"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_bhttn"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="2_1w8xr"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="2_h3tkl"]
+[ext_resource type="Script" uid="uid://1bmdbon3cr5w" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_wait.gd" id="3_hrlrg"]
+
+[sub_resource type="Resource" id="Resource_74blx"]
+script = ExtResource("2_1w8xr")
+message = "开始执行"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_ynfw2"]
+script = ExtResource("3_hrlrg")
+duration = 2.0
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_abxcj"]
+script = ExtResource("2_1w8xr")
+message = "执行完成"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[resource]
+script = ExtResource("2_h3tkl")
+children = Array[ExtResource("1_bhttn")]([SubResource("Resource_74blx"), SubResource("Resource_ynfw2"), SubResource("Resource_abxcj")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"

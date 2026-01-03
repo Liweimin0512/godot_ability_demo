@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BTSequence" load_steps=7 format=3 uid="uid://cbwe33mxg8mlr"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_cdcms"]
+[ext_resource type="Script" uid="uid://deqwosx24vj6g" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_set_var.gd" id="2_bjcyr"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="2_u3plm"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="3_mn2ey"]
+
+[sub_resource type="Resource" id="Resource_bjcyr"]
+script = ExtResource("2_bjcyr")
+variable_key = "message"
+value = "Hello from Blackboard"
+metadata/_custom_type_script = "uid://deqwosx24vj6g"
+
+[sub_resource type="Resource" id="Resource_mn2ey"]
+script = ExtResource("3_mn2ey")
+blackboard_key = "message"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[resource]
+script = ExtResource("2_u3plm")
+children = Array[ExtResource("1_cdcms")]([SubResource("Resource_bjcyr"), SubResource("Resource_mn2ey")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"

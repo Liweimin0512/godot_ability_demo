@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="BTSelector" load_steps=14 format=3 uid="uid://kncwndk18eg3"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_7mxsj"]
+[ext_resource type="Script" uid="uid://baqfy4ox4f5il" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_selector.gd" id="2_krmr2"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="3_u4gx4"]
+[ext_resource type="Script" uid="uid://1bmdbon3cr5w" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_wait.gd" id="4_4oqlr"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="5_qcigk"]
+
+[sub_resource type="Resource" id="Resource_12kk0"]
+script = ExtResource("3_u4gx4")
+message = "检查条件1"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_04fby"]
+script = ExtResource("4_4oqlr")
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_u4gx4"]
+script = ExtResource("3_u4gx4")
+message = "条件1成功"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_4oqlr"]
+script = ExtResource("5_qcigk")
+children = Array[ExtResource("1_7mxsj")]([SubResource("Resource_12kk0"), SubResource("Resource_04fby"), SubResource("Resource_u4gx4")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
+
+[sub_resource type="Resource" id="Resource_qcigk"]
+script = ExtResource("3_u4gx4")
+message = "检查条件2"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_7x5p6"]
+script = ExtResource("4_4oqlr")
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_l4m5x"]
+script = ExtResource("3_u4gx4")
+message = "条件2成功"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_6robk"]
+script = ExtResource("5_qcigk")
+children = Array[ExtResource("1_7mxsj")]([SubResource("Resource_qcigk"), SubResource("Resource_7x5p6"), SubResource("Resource_l4m5x")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
+
+[resource]
+script = ExtResource("2_krmr2")
+children = Array[ExtResource("1_7mxsj")]([SubResource("Resource_4oqlr"), SubResource("Resource_6robk")])
+metadata/_custom_type_script = "uid://baqfy4ox4f5il"
