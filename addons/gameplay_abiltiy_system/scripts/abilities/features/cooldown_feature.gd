@@ -10,9 +10,6 @@ const KEY_COOLDOWN_TIMER = "cooldown_timer"
 func _init() -> void:
 	super("CooldownFeature")
 
-func on_activate(ability: GameplayAbilityInstance, context: Dictionary) -> void:
-	start_cooldown(ability, cooldown_duration)
-
 func can_activate(ability: GameplayAbilityInstance, context: Dictionary) -> bool:
 	# 如果 context 跳过冷却，直接返回 true
 	if context.get("skip_cooldown", false):
