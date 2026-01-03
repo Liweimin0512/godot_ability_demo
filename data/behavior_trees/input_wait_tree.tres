@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="BTSequence" load_steps=8 format=3 uid="uid://dakd28lb0pc3l"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_mm4cm"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="2_d7j0p"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="2_f83vm"]
+[ext_resource type="Script" uid="uid://b8ulxm70yq0nc" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_wait_signal.gd" id="3_f83vm"]
+
+[sub_resource type="Resource" id="Resource_35v3u"]
+script = ExtResource("2_f83vm")
+message = "等待玩家输入"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_xu74s"]
+script = ExtResource("3_f83vm")
+timeout = 2.0
+metadata/_custom_type_script = "uid://b8ulxm70yq0nc"
+
+[sub_resource type="Resource" id="Resource_d7j0p"]
+script = ExtResource("2_f83vm")
+message = "收到输入"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[resource]
+script = ExtResource("2_d7j0p")
+children = Array[ExtResource("1_mm4cm")]([SubResource("Resource_35v3u"), SubResource("Resource_xu74s"), SubResource("Resource_d7j0p")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"

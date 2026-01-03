@@ -50,16 +50,8 @@ func reset() -> void:
 		return
 	_instance.reset()
 
-func get_blackboard() -> Dictionary:
-	return _instance.blackboard if is_instance_valid(_instance) else {}
-
-func set_var(key: String, value: Variant) -> void:
-	if not is_instance_valid(_instance):
-		return
-	_instance.set_var(key, value)
-
-func get_var(key: String, default: Variant = null) -> Variant:
-	return _instance.get_var(key, default) if is_instance_valid(_instance) else default
+func get_blackboard() -> BTBlackboard:
+	return _instance.blackboard if is_instance_valid(_instance) else null
 
 func _update_process_mode() -> void:
 	set_process(active and run_mode == RunnerMode.IDLE)

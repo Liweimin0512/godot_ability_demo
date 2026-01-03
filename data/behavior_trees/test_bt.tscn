@@ -1,11 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://bplewq58scb6b"]
+[gd_scene load_steps=4 format=3 uid="uid://bplewq58scb6b"]
 
 [ext_resource type="Script" uid="uid://ccb0o3e0q56yr" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_runner.gd" id="1_icvoe"]
-[ext_resource type="Resource" uid="uid://cbwe33mxg8mlr" path="res://data/behavior_trees/blackboard_test_tree.tres" id="2_icvoe"]
+[ext_resource type="Script" uid="uid://da7v0jkiqqxge" path="res://data/behavior_trees/test_bt.gd" id="1_s4im7"]
+[ext_resource type="Resource" uid="uid://b78lnh3e48q31" path="res://data/behavior_trees/priority_interrupt_tree.tres" id="3_s4im7"]
 
 [node name="TestBt" type="Node3D"]
+script = ExtResource("1_s4im7")
 
 [node name="BTRunner" type="Node" parent="."]
 script = ExtResource("1_icvoe")
-tree_root = ExtResource("2_icvoe")
+tree_root = ExtResource("3_s4im7")
 metadata/_custom_type_script = "uid://ccb0o3e0q56yr"

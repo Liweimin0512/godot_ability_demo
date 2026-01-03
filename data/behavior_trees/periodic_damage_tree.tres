@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="BTSequence" load_steps=12 format=3 uid="uid://cnxvw6a1wyndm"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_e1ik1"]
+[ext_resource type="Script" uid="uid://cy8m8dpggdcd0" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_check_var.gd" id="2_gi13r"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="2_pd0my"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="3_35r5f"]
+[ext_resource type="Script" uid="uid://dgtvfe875jg63" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/decorators/bt_repeat_periodic.gd" id="4_35r5f"]
+[ext_resource type="Script" uid="uid://i7w1m161onvb" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_modify_int.gd" id="4_rls7x"]
+
+[sub_resource type="Resource" id="Resource_rls7x"]
+script = ExtResource("2_gi13r")
+key = "has_mana"
+value = true
+metadata/_custom_type_script = "uid://cy8m8dpggdcd0"
+
+[sub_resource type="Resource" id="Resource_kcnbs"]
+script = ExtResource("3_35r5f")
+message = "应用周期性伤害"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_k2x85"]
+script = ExtResource("4_rls7x")
+variable_key = "mana"
+value = 10
+operation = 2
+metadata/_custom_type_script = "uid://i7w1m161onvb"
+
+[sub_resource type="Resource" id="Resource_3wuad"]
+script = ExtResource("2_pd0my")
+children = Array[ExtResource("1_e1ik1")]([SubResource("Resource_rls7x"), SubResource("Resource_kcnbs"), SubResource("Resource_k2x85")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
+
+[sub_resource type="Resource" id="Resource_4jrvv"]
+script = ExtResource("4_35r5f")
+child = SubResource("Resource_3wuad")
+metadata/_custom_type_script = "uid://dgtvfe875jg63"
+
+[resource]
+script = ExtResource("2_pd0my")
+children = Array[ExtResource("1_e1ik1")]([SubResource("Resource_4jrvv")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"

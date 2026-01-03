@@ -1,0 +1,64 @@
+[gd_resource type="Resource" script_class="BTSequence" load_steps=18 format=3 uid="uid://bcif1hqndu2k1"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_s6sd4"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="2_0tksh"]
+[ext_resource type="Script" uid="uid://cy8m8dpggdcd0" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_check_var.gd" id="2_xkawk"]
+[ext_resource type="Script" uid="uid://i7w1m161onvb" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_modify_int.gd" id="3_il1o2"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="4_2edbu"]
+[ext_resource type="Script" uid="uid://c8d8rsirm4kg3" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/decorators/bt_repeat_until_failure.gd" id="4_p0wpg"]
+[ext_resource type="Script" uid="uid://1bmdbon3cr5w" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_wait.gd" id="5_2edbu"]
+[ext_resource type="Script" uid="uid://deqwosx24vj6g" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_set_var.gd" id="6_jcf31"]
+
+[sub_resource type="Resource" id="Resource_dt8p1"]
+script = ExtResource("6_jcf31")
+variable_key = "combo_input_received"
+value = true
+metadata/_custom_type_script = "uid://deqwosx24vj6g"
+
+[sub_resource type="Resource" id="Resource_il1o2"]
+script = ExtResource("2_xkawk")
+key = "combo_input_received"
+value = true
+metadata/_custom_type_script = "uid://cy8m8dpggdcd0"
+
+[sub_resource type="Resource" id="Resource_q1ly7"]
+script = ExtResource("3_il1o2")
+variable_key = "combo_count"
+metadata/_custom_type_script = "uid://i7w1m161onvb"
+
+[sub_resource type="Resource" id="Resource_jcqvc"]
+script = ExtResource("4_2edbu")
+message = "combo_count："
+blackboard_key = "combo_count"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_vp7vu"]
+script = ExtResource("5_2edbu")
+duration = 0.5
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_rqb2v"]
+script = ExtResource("6_jcf31")
+variable_key = "combo_input_received"
+value = false
+metadata/_custom_type_script = "uid://deqwosx24vj6g"
+
+[sub_resource type="Resource" id="Resource_2edbu"]
+script = ExtResource("2_0tksh")
+children = Array[ExtResource("1_s6sd4")]([SubResource("Resource_il1o2"), SubResource("Resource_q1ly7"), SubResource("Resource_jcqvc"), SubResource("Resource_vp7vu"), SubResource("Resource_rqb2v")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
+
+[sub_resource type="Resource" id="Resource_jcf31"]
+script = ExtResource("4_p0wpg")
+child = SubResource("Resource_2edbu")
+metadata/_custom_type_script = "uid://c8d8rsirm4kg3"
+
+[sub_resource type="Resource" id="Resource_sibf6"]
+script = ExtResource("4_2edbu")
+message = "连击失败！"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[resource]
+script = ExtResource("2_0tksh")
+children = Array[ExtResource("1_s6sd4")]([SubResource("Resource_dt8p1"), SubResource("Resource_jcf31"), SubResource("Resource_sibf6")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"

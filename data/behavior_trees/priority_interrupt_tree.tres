@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="BTSelector" load_steps=14 format=3 uid="uid://b78lnh3e48q31"]
+
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_rgt05"]
+[ext_resource type="Script" uid="uid://bd8jnu3fx5r1e" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/decorators/bt_check_var_decorator.gd" id="2_4k6vb"]
+[ext_resource type="Script" uid="uid://baqfy4ox4f5il" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_selector.gd" id="2_ho2rc"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="2_t2iqn"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="3_o38wr"]
+[ext_resource type="Script" uid="uid://1bmdbon3cr5w" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_wait.gd" id="4_o38wr"]
+
+[sub_resource type="Resource" id="Resource_jusus"]
+script = ExtResource("3_o38wr")
+message = "攻击敌人"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_p1gno"]
+script = ExtResource("4_o38wr")
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_ioj7v"]
+script = ExtResource("2_t2iqn")
+children = Array[ExtResource("1_rgt05")]([SubResource("Resource_jusus"), SubResource("Resource_p1gno")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
+
+[sub_resource type="Resource" id="Resource_4k6vb"]
+script = ExtResource("2_4k6vb")
+key = "has_enemy"
+value = true
+abort_type = 2
+child = SubResource("Resource_ioj7v")
+metadata/_custom_type_script = "uid://bd8jnu3fx5r1e"
+
+[sub_resource type="Resource" id="Resource_u0dnq"]
+script = ExtResource("3_o38wr")
+message = "巡逻"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_36x6u"]
+script = ExtResource("4_o38wr")
+duration = 5.0
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_qipr4"]
+script = ExtResource("2_t2iqn")
+children = Array[ExtResource("1_rgt05")]([SubResource("Resource_u0dnq"), SubResource("Resource_36x6u")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
+
+[resource]
+script = ExtResource("2_ho2rc")
+children = Array[ExtResource("1_rgt05")]([SubResource("Resource_4k6vb"), SubResource("Resource_qipr4")])
+metadata/_custom_type_script = "uid://baqfy4ox4f5il"
