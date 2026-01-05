@@ -57,6 +57,19 @@ func initialize(initial_abilities : Array[GameplayAbilityDefinition] =[]) -> voi
 	for ability_data in _initial_abilities:
 		learn_ability(ability_data)
 
+## 匹配输入
+func match_input(event: InputEvent) -> StringName:
+	for instance : GameplayAbilityInstance in _learned_abilities.values():
+		# 1. 获取输入特性
+		var input_feature = instance.get_feature("AbilityInputFeature") as AbilityInputFeature
+		if not is_instance_valid(input_feature):
+			continue
+		# 2. 筛选匹配的技能
+		if input_feature.match_input(event):
+			# 3. 找到目标！返回技能实例ID
+			return instance.get_definition().ability_id
+	return &""
+
 ## 学习技能
 ## [param] ability_data: GameplayAbilityDefinition 技能定义
 func learn_ability(ability_data: GameplayAbilityDefinition) -> void:
@@ -151,7 +164,7 @@ func get_all_ability_instances() -> Dictionary[StringName, GameplayAbilityInstan
 ## [param] ability_id: StringName 技能ID
 ## [param] context: 技能执行上下文
 ## [return] bool 是否可以激活
-func can_activate_ability(ability_id: StringName, context: Variant = {}) -> bool:
+func can_activate_ability(ability_id: StringName, context: Dictionary = {}) -> bool:
 	var ability_instance = get_ability_instance(ability_id)
 	if not is_instance_valid(ability_instance):
 		push_error("GameplayAbilityComponent: Ability instance is not valid.")
@@ -160,6 +173,11 @@ func can_activate_ability(ability_id: StringName, context: Variant = {}) -> bool
 	if ability_instance.disabled:
 		return false
 
+	context.ability = ability_instance
+	context.ability_component = self
+	context.ability_id = ability_id
+	context.instigator = get_parent()
+	
 	return ability_instance.can_activate(context)
 
 ## 尝试激活技能
@@ -167,14 +185,14 @@ func can_activate_ability(ability_id: StringName, context: Variant = {}) -> bool
 ## [param] ability_id: StringName 技能ID
 ## [param] context: 技能执行上下文
 ## [return] bool 是否成功激活
-func try_activate_ability(ability_id: StringName, context: Variant = {}) -> bool:
+func try_activate_ability(ability_id: StringName, context: Dictionary = {}) -> bool:
 	var ability_instance = get_ability_instance(ability_id)
 	if not is_instance_valid(ability_instance):
 		push_error("GameplayAbilityComponent: Ability instance is not valid.")
 		return false
 	
 	context.ability = ability_instance
-	context.ability_comp = self
+	context.ability_component = self
 	context.ability_id = ability_id
 	context.instigator = get_parent()
 	

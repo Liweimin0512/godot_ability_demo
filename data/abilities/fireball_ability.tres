@@ -1,12 +1,36 @@
-[gd_resource type="Resource" script_class="GameplayAbilityDefinition" load_steps=11 format=3 uid="uid://r3i2dx5llb3c"]
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" load_steps=21 format=3 uid="uid://r3i2dx5llb3c"]
 
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_31eeg"]
 [ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="1_064ho"]
 [ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/gameplay_abiltiy_system/scripts/abilities/gameplay_ability_definition.gd" id="1_xy56d"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="2_6wshv"]
 [ext_resource type="Script" uid="uid://cfho6ucrpkdn1" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/cooldown_feature.gd" id="2_7f18i"]
+[ext_resource type="Script" uid="uid://1bmdbon3cr5w" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_wait.gd" id="3_wlp4b"]
 [ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="3_y1dv3"]
 [ext_resource type="Script" uid="uid://cerfta25urv6h" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/vital_cost.gd" id="4_7f18i"]
 [ext_resource type="Script" uid="uid://chls772x4fojc" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/cost_feature.gd" id="4_dysyi"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="4_eu56h"]
 [ext_resource type="Texture2D" uid="uid://ckarr4gl6dpbp" path="res://assets/textures/burn.tres" id="5_m7e1f"]
+[ext_resource type="Script" uid="uid://cmlk4yahsdkov" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/ability_input_feature.gd" id="10_6wshv"]
+
+[sub_resource type="Resource" id="Resource_t1me2"]
+script = ExtResource("2_6wshv")
+message = "开始执行火球术！"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_bgjd6"]
+script = ExtResource("3_wlp4b")
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_rdqs1"]
+script = ExtResource("2_6wshv")
+message = "火球术执行完成！"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_3b4hy"]
+script = ExtResource("4_eu56h")
+children = Array[ExtResource("1_31eeg")]([SubResource("Resource_t1me2"), SubResource("Resource_bgjd6"), SubResource("Resource_rdqs1")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
 
 [sub_resource type="Resource" id="Resource_31eeg"]
 script = ExtResource("2_7f18i")
@@ -22,11 +46,17 @@ script = ExtResource("4_dysyi")
 costs = Array[ExtResource("3_y1dv3")]([SubResource("Resource_y1dv3")])
 metadata/_custom_type_script = "uid://chls772x4fojc"
 
+[sub_resource type="Resource" id="Resource_wlp4b"]
+script = ExtResource("10_6wshv")
+input_action = &"Q"
+metadata/_custom_type_script = "uid://cmlk4yahsdkov"
+
 [resource]
 script = ExtResource("1_xy56d")
 ability_id = &"fireball"
 ability_name = "火球术"
 description = "发射一个火球，对目标造成火焰伤害"
 icon = ExtResource("5_m7e1f")
-features = Array[ExtResource("1_064ho")]([SubResource("Resource_31eeg"), SubResource("Resource_6wshv")])
+features = Array[ExtResource("1_064ho")]([SubResource("Resource_31eeg"), SubResource("Resource_6wshv"), SubResource("Resource_wlp4b")])
+execution_tree = SubResource("Resource_3b4hy")
 metadata/_custom_type_script = "uid://bm4h231fb21pv"

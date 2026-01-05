@@ -8,6 +8,7 @@ const TRANSITION_TIME = 1.5
 @onready var camera: Camera3D = $Camera3D
 @onready var attribute_dashboard: AttributeDashboard = $UILayer/HUD/AttributeDashboard
 @onready var bt_debug_panel: BTDebugPanel = $BtDebugPanel
+@onready var ability_bar: AbilityBar = $UILayer/HUD/AbilityBar
 
 func _ready() -> void:
 	# 初始化：游戏开始时，把摄像机瞬间定格在第一个房间
@@ -18,6 +19,7 @@ func _ready() -> void:
 	inventory_ui.initialize(player_inventory)
 	var attribute_component : GameplayAttributeComponent = GameplayAbilitySystem.get_component_by_interface(player, "GameplayVitalAttributeComponent")
 	attribute_dashboard.initialize(attribute_component, player.attribute_points_manager)
+	var ability_component : GameplayAbilityComponent = GameplayAbilitySystem.get_component_by_interface(player, "GameplayAbilityComponent")
 
 	# 设置自定义伤害策略
 	var arpg_strategy = ARPGDamageLogic.new()
@@ -27,6 +29,8 @@ func _ready() -> void:
 	# 注册标签系统
 	var tag_count := TagManager.register_tags_from_directory("res://data/tags/")
 	print("Registered %d tags" % tag_count)
+
+	ability_bar.setup(ability_component)
 
 func _unhandled_input(event) -> void:
 	if event.is_action_pressed("toggle_inventory"):

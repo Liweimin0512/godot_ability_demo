@@ -192,5 +192,16 @@ func clear_blackboard() -> void:
 
 #endregion
 
+func get_current_icon() -> Texture:
+	for feature in _features.values():
+		if not feature.has_method("get_current_icon"):
+			continue
+		var icon : Texture = feature.get_current_icon(self)
+		if is_instance_valid(icon):
+			return icon
+
+	# 回退到 Definition 的默认图标
+	return _definition.icon
+
 func _on_blackboard_value_changed(key: String, value: Variant) -> void:
 	ability_data_changed.emit(self)

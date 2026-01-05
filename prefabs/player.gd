@@ -101,12 +101,24 @@ func _physics_process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact"):
 		_try_interact()
-	elif event.is_action_pressed("attack"):
-		_play_anim("attack")
+	#elif event.is_action_pressed("attack"):
+		#_play_anim("attack")
 
 	elif event.is_action_pressed("ui_accept"):
 		_test_damage()
 	
+	# 过滤非按下和重复事件
+	if not event.is_pressed() or event.is_echo():
+		return
+
+	# 获取所有已学会的技能
+	var ability_id : StringName = ability_component.match_input(event)
+	if not ability_id.is_empty():
+		var success = ability_component.try_activate_ability(ability_id)
+		if success:
+			get_viewport().set_input_as_handled()
+			print("技能释放成功: ", ability_id)
+
 func _test_damage() -> void:
 	if not is_instance_valid(vital_component):
 		return

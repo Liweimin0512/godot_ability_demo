@@ -8,6 +8,9 @@ class_name CostFeature
 func _init() -> void:
 	super("CostFeature")
 
+#func on_activate(ability: GameplayAbilityInstance, context: Dictionary) -> void:
+	#try_pay(ability, context)
+
 func can_activate(ability_instance: GameplayAbilityInstance, context: Dictionary) -> bool:
 	if context.get("skip_cost", false):
 		return true
