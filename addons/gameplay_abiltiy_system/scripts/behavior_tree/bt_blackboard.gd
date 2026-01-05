@@ -27,6 +27,10 @@ func has_var(key: String) -> Variant:
 func erase_var(key: String) -> Variant:
 	return _data.erase(key)
 
+func clear() -> void:
+	_data.clear()
+	_node_memory.clear()
+
 ## [调试] 获取所有变量（用于调试面板）
 func get_all_vars() -> Dictionary:
 	return _data.duplicate()

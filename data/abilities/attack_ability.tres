@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" load_steps=12 format=3 uid="uid://d2n1yron43w3d"]
+
+[ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="1_aq14x"]
+[ext_resource type="Script" uid="uid://b200ruv4w4b67" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_log.gd" id="1_jnb21"]
+[ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_nk0i2"]
+[ext_resource type="Texture2D" uid="uid://cxb6pfdx131lx" path="res://assets/textures/attack_ability.tres" id="2_jnb21"]
+[ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/gameplay_abiltiy_system/scripts/abilities/gameplay_ability_definition.gd" id="2_nl53n"]
+[ext_resource type="Script" uid="uid://1bmdbon3cr5w" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/actions/bt_wait.gd" id="3_kbj5l"]
+[ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="4_aacpc"]
+
+[sub_resource type="Resource" id="Resource_t1me2"]
+script = ExtResource("1_jnb21")
+message = "开始执行普通攻击！"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_bgjd6"]
+script = ExtResource("3_kbj5l")
+metadata/_custom_type_script = "uid://1bmdbon3cr5w"
+
+[sub_resource type="Resource" id="Resource_rdqs1"]
+script = ExtResource("1_jnb21")
+message = "普通攻击完成！"
+metadata/_custom_type_script = "uid://b200ruv4w4b67"
+
+[sub_resource type="Resource" id="Resource_55x0q"]
+script = ExtResource("4_aacpc")
+children = Array[ExtResource("1_nk0i2")]([SubResource("Resource_t1me2"), SubResource("Resource_bgjd6"), SubResource("Resource_rdqs1")])
+metadata/_custom_type_script = "uid://c41o2t4s0gv2b"
+
+[resource]
+script = ExtResource("2_nl53n")
+ability_id = &"attack"
+ability_name = "普通攻击"
+icon = ExtResource("2_jnb21")
+execution_tree = SubResource("Resource_55x0q")
+metadata/_custom_type_script = "uid://bm4h231fb21pv"

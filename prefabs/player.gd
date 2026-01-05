@@ -14,6 +14,7 @@ class_name Player
 @onready var interaction_area: Area3D = $Visuals/InteractionArea
 @onready var inventory_component: C_Inventory = $InventoryComponent
 @onready var vital_component: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
+@onready var ability_component: GameplayAbilityComponent = $GameplayAbilityComponent
 
 var animation_state_machine: AnimationNodeStateMachinePlayback
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -30,6 +31,30 @@ func _ready() -> void:
 			inventory_component.add_item(potion.duplicate())
 
 	vital_component.initialize(player_data.attribute_sets, player_data.vitals)
+	ability_component.initialize(player_data.initial_abilities)
+
+	# 测试1：学习技能
+	ability_component.ability_completed.connect(
+		func(ability: GameplayAbilityInstance) -> void:
+			print("%s 技能执行完成！" %ability.get_definition().ability_name)
+	)
+	ability_component.ability_learned.connect(
+		func(ability: GameplayAbilityInstance) -> void:
+			print("%s 技能学习完成！" %ability.get_definition().ability_name)
+	)
+	
+	var fireball_ability = preload("res://data/abilities/fireball_ability.tres")
+	ability_component.learn_ability(fireball_ability)
+	print("火球术已学习")
+
+	# 测试2：检查技能是否可用
+	assert(ability_component.can_activate_ability("attack"), "技能应该可用")
+
+	# 测试3：激活技能
+	var success = ability_component.try_activate_ability("attack", {})
+	assert(success, "技能应该成功激活")
+
+	print("✅ 技能组件测试通过")
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():

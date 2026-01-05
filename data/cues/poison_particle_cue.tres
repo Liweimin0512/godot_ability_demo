@@ -6,6 +6,6 @@
 [resource]
 script = ExtResource("1_0r6gn")
 particle_scene = ExtResource("1_fpbm8")
-attachment_point = &"body"
-offset = Vector3(0, 0.2, 0)
+attachment_point = &"head"
+offset = Vector3(0, 1, 0)
 metadata/_custom_type_script = "uid://mop1sgag2ypw"

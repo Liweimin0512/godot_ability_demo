@@ -32,6 +32,9 @@ func _init(owner: Node, definition: GameplayAbilityDefinition) -> void:
 	else:
 		push_warning("AbilityInstance: execution_tree is not valid!")
 
+func get_definition() -> GameplayAbilityDefinition:
+	return _definition
+
 ## 尝试激活技能 (由 Player/Component 调用)
 func try_activate(context: Dictionary = {}) -> bool:
 	if is_active:
@@ -158,18 +161,18 @@ func has_feature(feature_name: String) -> bool:
 #endregion
 
 ## 处理技能学习事件（被动技能）
-func handle_learned(ability_comp: Node, status_comp: Node) -> void:
-	for feature in _features.values():
+func handle_learned(ability_comp: Node) -> void:
+	for feature : GameplayAbilityFeature in _features.values():
 		if not is_instance_valid(feature):
 			continue
-		feature.on_learned(self, ability_comp, status_comp)
+		feature.on_learned(self, ability_comp)
 
 ## 处理技能遗忘事件（被动技能）
-func handle_forgotten(ability_comp: Node, status_comp: Node) -> void:
+func handle_forgotten(ability_comp: Node,) -> void:
 	for feature in _features.values():
 		if not is_instance_valid(feature):
 			continue
-		feature.on_forgotten(self, ability_comp, status_comp)
+		feature.on_forgotten(self, ability_comp)
 
 #region ========== 行为树管理 ==========
 func get_bt_instance() -> BTInstance:
