@@ -18,11 +18,16 @@ class_name GameplayAbilityDefinition
 @export_group("Behavior Logic")
 ## 核心行为树 (描述技能的具体执行流程)
 @export var execution_tree: BTNode
-
 ## 黑板默认数据 (配置参数)
 ## 这里填写的 Key-Value 会在技能实例化时自动注入到黑板中
 ## 用途：配置 伤害范围、投射物速度、BUFF持续时间 等
 @export var blackboard_defaults: Dictionary = {}
+
+@export_group("Targeting")
+## 瞄准策略（如果为空，则视为瞬发/无需目标）
+@export var targeting_indicator: AbilityTargetingIndicator
+## 是否开启智能施法（跳过预览，直接向鼠标位置释放）
+@export var smart_cast: bool = false
 
 ## [核心] 创建运行时实例
 ## 这将把静态的 Definition 转化为动态的 Instance

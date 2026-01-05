@@ -48,7 +48,7 @@ metadata/_custom_type_script = "uid://chls772x4fojc"
 
 [sub_resource type="Resource" id="Resource_wlp4b"]
 script = ExtResource("10_6wshv")
-input_action = &"Q"
+input_action = &"skill_q"
 metadata/_custom_type_script = "uid://cmlk4yahsdkov"
 
 [resource]

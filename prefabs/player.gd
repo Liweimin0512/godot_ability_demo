@@ -56,6 +56,13 @@ func _ready() -> void:
 
 	print("✅ 技能组件测试通过")
 
+func _process(_delta: float) -> void:
+	# 实时更新指示器位置
+	if ability_component.has_targeting_ability():
+		var mouse_pos = get_mouse_world_pos()
+		var current_targeting_ability = ability_component.get_targeting_ability()
+		current_targeting_ability.update_targeting(mouse_pos)
+
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -114,10 +121,53 @@ func _unhandled_input(event: InputEvent) -> void:
 	# 获取所有已学会的技能
 	var ability_id : StringName = ability_component.match_input(event)
 	if not ability_id.is_empty():
-		var success = ability_component.try_activate_ability(ability_id)
-		if success:
-			get_viewport().set_input_as_handled()
-			print("技能释放成功: ", ability_id)
+		# 请求预览
+		var ability = ability_component.request_ability_preview(ability_id)
+		if ability == null:
+			# 返回 null 说明是智能施法或瞬发，立即执行
+			var mouse_pos = get_mouse_world_pos()
+			# 即使是智能施法，最好也让 Strategy 计算一下修正坐标，
+			# 但为了简化，这里直接传位置，或者手动获取 strategy 计算
+			var smart_context = {"target_position": mouse_pos}
+			var success = ability_component.try_activate_ability(ability_id, smart_context)
+			if success:
+				get_viewport().set_input_as_handled()
+				print("技能释放成功: ", ability_id)
+
+	var current_targeting_ability = ability_component.get_targeting_ability()
+	# 2. 鼠标左键：确认施法
+	if event.is_action_pressed("mouse_left") and ability_component.has_targeting_ability():
+		var mouse_pos = get_mouse_world_pos()
+		# 确认预览，获取 Context 数据 (包含 position/direction)
+		var context = current_targeting_ability.confirm_targeting(mouse_pos)
+
+		# 正式激活技能
+		ability_component.try_activate_ability(
+			current_targeting_ability.get_definition().ability_id, 
+			context
+		)
+
+		get_viewport().set_input_as_handled() # 阻止点击移动
+
+	# 3. 鼠标右键：取消施法
+	if event.is_action_pressed("mouse_right") and ability_component.has_targeting_ability():
+		current_targeting_ability.cancel_targeting()
+		current_targeting_ability = null
+		get_viewport().set_input_as_handled()
+
+## 辅助函数：获取鼠标在 3D 世界的坐标
+func get_mouse_world_pos() -> Vector3:
+	var camera = get_viewport().get_camera_3d()
+	var mouse_pos = get_viewport().get_mouse_position()
+	var ray_origin = camera.project_ray_origin(mouse_pos)
+	var ray_dir = camera.project_ray_normal(mouse_pos)
+
+	# 简单的射线检测平面 (y=0)
+	# 实际项目中建议使用 PhysicsRayQueryParameters3D 检测地表层
+	var t = -ray_origin.y / ray_dir.y
+	if t >= 0:
+		return ray_origin + ray_dir * t
+	return Vector3.ZERO
 
 func _test_damage() -> void:
 	if not is_instance_valid(vital_component):
