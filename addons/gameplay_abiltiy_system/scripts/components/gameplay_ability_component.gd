@@ -18,6 +18,8 @@ var _learned_abilities: Dictionary[StringName, GameplayAbilityInstance] = {}
 ## 当前正在执行的技能实例（用于后摇可取消机制）
 ## 注意：这通常是最新激活的技能，用于处理技能间的互斥逻辑
 var _current_casting_ability: GameplayAbilityInstance = null
+## 当前正在预览的技能实例（用于管理预览状态）
+var _current_targeting_ability: GameplayAbilityInstance = null
 
 #region ========== 信号定义 ==========
 signal ability_learned(ability: GameplayAbilityInstance)				## 技能学会信号
@@ -245,6 +247,65 @@ func get_current_casting_ability() -> GameplayAbilityInstance:
 
 func get_all_ability_ids() -> Array:
 	return _learned_abilities.keys()
+
+#region ========== 公共API - 交互与预览 ==========
+## 请求使用技能（用户输入的入口）
+## 根据配置决定是直接施法（智能施法/瞬发）还是进入预览模式
+## [param] ability_id: 技能 ID
+## [return] GameplayAbilityInstance 如果进入预览模式返回实例，否则返回 null
+func request_ability_preview(ability_id: StringName) -> GameplayAbilityInstance:
+	var ability_instance = get_ability_instance(ability_id)
+	if not is_instance_valid(ability_instance):
+		return null
+
+	# 1. 前置检查：如果 CD 没好，就别预览了
+	if not can_activate_ability(ability_id):
+		# 这里可以触发 UI 提示 "技能冷却中"
+		return null
+
+	# 2. 分支判断
+	if not ability_instance.has_targeting() or ability_instance.should_smart_cast():
+		# 分支 A: 瞬发 或 智能施法 -> 返回 null
+		# 控制器应该立即调用 try_activate_ability
+		return null
+	else:
+		# 分支 B: 进入预览模式
+		ability_instance.start_targeting()
+		# 如果之前有技能在瞄准，先取消它
+		if is_instance_valid(_current_targeting_ability) and _current_targeting_ability != ability_instance:
+			_current_targeting_ability.cancel_targeting()
+		_current_targeting_ability = ability_instance
+		return ability_instance
+
+## 取消指定技能的预览
+## [param] ability_id: StringName 技能 ID（可选，如果不提供则取消当前预览的技能）
+func cancel_ability_preview(ability_id: StringName = &"") -> void:
+	var target_id = ability_id
+	if target_id.is_empty():
+		# 如果没有指定技能ID，取消当前预览的技能
+		if is_instance_valid(_current_targeting_ability):
+			_current_targeting_ability.cancel_targeting()
+			_current_targeting_ability = null
+		return
+
+	# 取消指定技能的预览
+	var ability_instance = get_ability_instance(target_id)
+	if is_instance_valid(ability_instance):
+		ability_instance.cancel_targeting()
+		if _current_targeting_ability == ability_instance:
+			_current_targeting_ability = null
+
+## 检查是否有技能正在预览
+## [return] bool 是否有技能正在预览
+func has_targeting_ability() -> bool:
+	return is_instance_valid(_current_targeting_ability)
+
+## 获取当前正在预览的技能实例
+## [return] GameplayAbilityInstance 当前预览的技能实例，如果没有则返回 null
+func get_current_targeting_ability() -> GameplayAbilityInstance:
+	return _current_targeting_ability
+
+#endregion
 
 #region ========== 私有方法 - 事件回调 ==========
 ## 处理技能完成信号（由 Ability 发出）

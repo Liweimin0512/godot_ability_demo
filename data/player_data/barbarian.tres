@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="PlayerData" load_steps=10 format=3 uid="uid://cnhlvykhf6ty4"]
+[gd_resource type="Resource" script_class="PlayerData" load_steps=11 format=3 uid="uid://cnhlvykhf6ty4"]
 
 [ext_resource type="Script" uid="uid://bkkqftstlq2s6" path="res://addons/gameplay_abiltiy_system/scripts/attributes/gameplay_attribute_set.gd" id="1_srw5w"]
 [ext_resource type="Script" uid="uid://vexvjx4r3f5b" path="res://scripts/data/player_data.gd" id="2_8u1ne"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" uid="uid://c6m5kfhl1aid0" path="res://data/attribute_sets/hero_secondary_attributes.tres" id="3_41usi"]
 [ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/gameplay_abiltiy_system/scripts/abilities/gameplay_ability_definition.gd" id="4_fl65l"]
 [ext_resource type="Script" uid="uid://de4yqlfssv0xe" path="res://addons/gameplay_abiltiy_system/scripts/attributes/vitals/gameplay_vital.gd" id="5_x6008"]
+[ext_resource type="Resource" uid="uid://r3i2dx5llb3c" path="res://data/abilities/fireball_ability.tres" id="6_80eqs"]
 [ext_resource type="Resource" uid="uid://dp3c4xicn4jo0" path="res://data/abilities/damage_reduction_shield_passive.tres" id="6_dfdl6"]
 [ext_resource type="Resource" uid="uid://dttqbxpvo1e7d" path="res://data/vitals/health_vital.tres" id="6_fl65l"]
 [ext_resource type="Resource" uid="uid://ks8eqy4dry5b" path="res://data/vitals/mana_vital.tres" id="7_bhydp"]
@@ -14,5 +15,5 @@
 script = ExtResource("2_8u1ne")
 attribute_sets = Array[ExtResource("1_srw5w")]([ExtResource("2_41usi"), ExtResource("3_41usi")])
 vitals = Array[ExtResource("5_x6008")]([ExtResource("6_fl65l"), ExtResource("7_bhydp")])
-initial_abilities = Array[ExtResource("4_fl65l")]([ExtResource("6_dfdl6")])
+initial_abilities = Array[ExtResource("4_fl65l")]([ExtResource("6_dfdl6"), ExtResource("6_80eqs")])
 metadata/_custom_type_script = "uid://vexvjx4r3f5b"

@@ -15,6 +15,9 @@ var disabled : bool = false:
 	get:
 		return _definition.disabled
 
+var _indicator_instance: Node3D = null
+var _is_targeting: bool = false
+
 ## 技能完成信号
 signal ability_completed(ability: GameplayAbilityInstance)
 ## 技能数据改变
@@ -189,6 +192,66 @@ func get_blackboard_var(key: String, default: Variant = null) -> Variant:
 
 func clear_blackboard() -> void:
 	_blackboard.clear()
+
+#endregion
+
+#region ========== 瞄准/预览逻辑 (Targeting) ==========
+## 检查是否配置了预览策略
+func has_targeting() -> bool:
+	return is_instance_valid(_definition.preview_strategy)
+
+## 检查是否应该智能施法
+func should_smart_cast() -> bool:
+	if GameplayAbilitySystem.smart_cast:
+		return true
+	return _definition.smart_cast
+
+## [API] 开始预览模式
+func start_targeting() -> void:
+	if not has_targeting(): 
+		return
+	_is_targeting = true
+	# 使用策略创建视觉指示器
+	_indicator_instance = _definition.preview_strategy.create_indicator(_owner)
+
+## [API] 更新预览 (每帧调用)
+## [param] mouse_pos: 鼠标在世界空间的坐标
+func update_targeting(mouse_pos: Vector3) -> void:
+	if not _is_targeting or not is_instance_valid(_indicator_instance):
+		return
+
+	_definition.preview_strategy.update_indicator(
+		_indicator_instance, 
+		_owner, 
+		mouse_pos
+	)
+	
+## [API] 确认预览 -> 返回 Context 数据
+## [param] mouse_pos: 最终确定的位置
+func confirm_targeting(mouse_pos: Vector3) -> Dictionary:
+	var context = {}
+	if has_targeting():
+		# 使用策略计算最终数据
+		context = _definition.preview_strategy.get_targeting_context(_owner, mouse_pos)
+	_stop_targeting_visuals()
+	return context
+
+## [API] 取消预览
+func cancel_targeting() -> void:
+	# 如果是光标策略，需要恢复默认光标
+	if is_instance_valid(_definition.preview_strategy):
+		_definition.preview_strategy.cancel_targeting()
+		
+	_stop_targeting_visuals()
+
+## 内部清理
+func _stop_targeting_visuals() -> void:
+	_is_targeting = false
+
+	# 清理 3D 指示器（如果有）
+	if is_instance_valid(_indicator_instance):
+		_indicator_instance.queue_free()
+		_indicator_instance = null
 
 #endregion
 

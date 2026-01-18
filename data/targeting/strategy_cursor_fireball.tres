@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StrategyCursorChange" load_steps=3 format=3 uid="uid://bdqqbivi8b2je"]
+
+[ext_resource type="Script" uid="uid://c7btvuqowhshg" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/strategy_cursor_change.gd" id="1_5612c"]
+[ext_resource type="Texture2D" uid="uid://ckarr4gl6dpbp" path="res://assets/textures/burn.tres" id="1_xhbbo"]
+
+[resource]
+script = ExtResource("1_5612c")
+cursor_texture = ExtResource("1_xhbbo")
+cursor_hotspot = Vector2(16, 16)
+max_range = 15.0
+metadata/_custom_type_script = "uid://c7btvuqowhshg"

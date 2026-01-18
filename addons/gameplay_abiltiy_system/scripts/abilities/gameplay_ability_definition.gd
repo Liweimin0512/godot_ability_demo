@@ -10,6 +10,14 @@ class_name GameplayAbilityDefinition
 @export var disabled: bool = false                  	## 技能是否禁用
 @export var tags: Array[StringName] = []            	## 技能标签
 
+@export_group("Targeting Preview")
+## 预览策略（AbilityPreviewStrategy，用于预览阶段的视觉表现）
+## 如果为空，则视为瞬发/无需预览
+## 注意：这与行为树中的 TargetingStrategy（目标选择策略）不同
+@export var preview_strategy: AbilityPreviewStrategy = null
+## 是否开启智能施法（跳过预览，直接向鼠标位置释放）
+@export var smart_cast: bool = false
+
 @export_group("Features")
 ## 技能特性列表（可组合的行为特性）
 ## 通过组合不同的特性，可以实现复杂的技能行为

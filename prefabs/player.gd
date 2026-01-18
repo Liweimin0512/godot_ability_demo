@@ -21,6 +21,9 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var attribute_points_manager: AttributePointsManager = AttributePointsManager.new(10)
 
+# 当前正在瞄准的技能
+var current_targeting_ability: GameplayAbilityInstance = null
+
 func _ready() -> void:
 	animation_state_machine = animation_tree.get("parameters/StateMachine/playback")
 	animation_state_machine.travel("movement")
@@ -35,6 +38,15 @@ func _ready() -> void:
 
 	await get_tree().create_timer(2).timeout
 	ability_component.forget_ability(&"damage_reduction_shield_passive")
+
+func _process(_delta):
+	# 实时更新指示器位置
+	var targeting_ability = ability_component.get_current_targeting_ability()
+	if is_instance_valid(targeting_ability):
+		var mouse_pos = get_mouse_world_pos()
+		targeting_ability.update_targeting(mouse_pos)
+		# 同步本地变量（用于其他逻辑）
+		current_targeting_ability = targeting_ability
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -91,13 +103,59 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_pressed() or event.is_echo():
 		return
 
-	# 获取所有已学会的技能
+	# 获取所有已学会的技能，检查输入匹配
 	var ability_id : StringName = ability_component.match_input(event)
 	if not ability_id.is_empty():
-		var success = ability_component.try_activate_ability(ability_id)
-		if success:
+		# 请求预览
+		var ability = ability_component.request_ability_preview(ability_id)
+		if ability  == null:
+			# 返回 null 说明是智能施法或瞬发，立即执行
+			var mouse_pos = get_mouse_world_pos()
+			# 即使是智能施法，最好也让 Strategy 计算一下修正坐标，
+			# 但为了简化，这里直接传位置，或者手动获取 strategy 计算
+			var smart_context = {"target_position": mouse_pos}
+			var success = ability_component.try_activate_ability(ability_id, smart_context)
+			if success:
+				get_viewport().set_input_as_handled()
+				print("技能释放成功: ", ability_id)
+
+	# 2. 鼠标左键：确认施法
+	if event.is_action_pressed("mouse_left"):
+		var targeting_ability = ability_component.get_current_targeting_ability()
+		if is_instance_valid(targeting_ability):
+			var mouse_pos = get_mouse_world_pos()
+			# 确认预览，获取 Context 数据 (包含 position/direction)
+			var context = targeting_ability.confirm_targeting(mouse_pos)
+			# 正式激活技能
+			ability_component.try_activate_ability(
+				targeting_ability.get_definition().ability_id, 
+				context
+			)
+			# 清空当前预览技能（Component 内部会处理）
+			current_targeting_ability = null
+			get_viewport().set_input_as_handled() # 阻止点击移动
+
+	# 3. 鼠标右键：取消施法
+	if event.is_action_pressed("mouse_right"):
+		var targeting_ability = ability_component.get_current_targeting_ability()
+		if is_instance_valid(targeting_ability):
+			ability_component.cancel_ability_preview()
+			current_targeting_ability = null
 			get_viewport().set_input_as_handled()
-			print("技能释放成功: ", ability_id)
+
+## 辅助函数：获取鼠标在 3D 世界的坐标
+func get_mouse_world_pos() -> Vector3:
+	var camera = get_viewport().get_camera_3d()
+	var mouse_pos = get_viewport().get_mouse_position()
+	var ray_origin = camera.project_ray_origin(mouse_pos)
+	var ray_dir = camera.project_ray_normal(mouse_pos)
+
+	# 简单的射线检测平面 (y=0)
+	# 实际项目中建议使用 PhysicsRayQueryParameters3D 检测地表层
+	var t = -ray_origin.y / ray_dir.y
+	if t >= 0:
+		return ray_origin + ray_dir * t
+	return Vector3.ZERO
 
 func _test_damage() -> void:
 	if not is_instance_valid(vital_component):

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GameplayAbilityDefinition" load_steps=21 format=3 uid="uid://r3i2dx5llb3c"]
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" load_steps=22 format=3 uid="uid://r3i2dx5llb3c"]
 
 [ext_resource type="Script" uid="uid://sxdftgknoett" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/bt_node.gd" id="1_31eeg"]
 [ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="1_064ho"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://c41o2t4s0gv2b" path="res://addons/gameplay_abiltiy_system/scripts/behavior_tree/composites/bt_sequence.gd" id="4_eu56h"]
 [ext_resource type="Texture2D" uid="uid://ckarr4gl6dpbp" path="res://assets/textures/burn.tres" id="5_m7e1f"]
 [ext_resource type="Script" uid="uid://cmlk4yahsdkov" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/ability_input_feature.gd" id="10_6wshv"]
+[ext_resource type="Resource" uid="uid://bdqqbivi8b2je" path="res://data/targeting/strategy_cursor_fireball.tres" id="12_wlp4b"]
 
 [sub_resource type="Resource" id="Resource_t1me2"]
 script = ExtResource("2_6wshv")
@@ -57,6 +58,7 @@ ability_id = &"fireball"
 ability_name = "火球术"
 description = "发射一个火球，对目标造成火焰伤害"
 icon = ExtResource("5_m7e1f")
+preview_strategy = ExtResource("12_wlp4b")
 features = Array[ExtResource("1_064ho")]([SubResource("Resource_31eeg"), SubResource("Resource_6wshv"), SubResource("Resource_wlp4b")])
 execution_tree = SubResource("Resource_3b4hy")
 metadata/_custom_type_script = "uid://bm4h231fb21pv"
