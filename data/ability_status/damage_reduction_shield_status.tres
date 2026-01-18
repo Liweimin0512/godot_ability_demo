@@ -28,7 +28,6 @@ script = ExtResource("2_hl5q6")
 status_id = &"damage_reduction_shield"
 status_display_name = "减伤护盾"
 status_description = "每次受到伤害前，将伤害减少 50%。"
-duration = 30.0
 icon = ExtResource("4_h64hi")
 tags = Array[StringName]([&"status.buff", &"defense.shield"])
 features = Array[ExtResource("2_0e8uw")]([SubResource("Resource_oo0kp")])

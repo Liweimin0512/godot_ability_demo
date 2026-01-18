@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="GameplayAbilityDefinition" load_steps=8 format=3 uid="uid://dp3c4xicn4jo0"]
+
+[ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="1_e4tww"]
+[ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/gameplay_abiltiy_system/scripts/abilities/gameplay_ability_definition.gd" id="2_7o3bj"]
+[ext_resource type="Texture2D" uid="uid://cieo4b66xwpa5" path="res://assets/textures/damage_reduction_shield.tres" id="2_8dl86"]
+[ext_resource type="Script" uid="uid://5p7f1nsqc2ma" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/passive_status_feature.gd" id="2_yujue"]
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="3_e1rth"]
+[ext_resource type="Resource" uid="uid://bn5vcaouea28f" path="res://data/ability_status/damage_reduction_shield_status.tres" id="4_e1rth"]
+
+[sub_resource type="Resource" id="Resource_64x7n"]
+script = ExtResource("2_yujue")
+statuses = Dictionary[ExtResource("3_e1rth"), int]({
+ExtResource("4_e1rth"): 1
+})
+metadata/_custom_type_script = "uid://5p7f1nsqc2ma"
+
+[resource]
+script = ExtResource("2_7o3bj")
+ability_id = &"damage_reduction_shield_passive"
+ability_name = "减伤护盾（被动）"
+description = "被动：获得一个减伤护盾，每次受到伤害前，将伤害减少 50%。"
+icon = ExtResource("2_8dl86")
+tags = Array[StringName]([&"passive", &"defense"])
+features = Array[ExtResource("1_e4tww")]([SubResource("Resource_64x7n")])
+metadata/_custom_type_script = "uid://bm4h231fb21pv"

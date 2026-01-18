@@ -240,6 +240,12 @@ func cancel_ability(ability_id: StringName = &"", context: Dictionary = {}) -> v
 		"ability_id": target_id
 	})
 
+func get_current_casting_ability() -> GameplayAbilityInstance:
+	return _current_casting_ability
+
+func get_all_ability_ids() -> Array:
+	return _learned_abilities.keys()
+
 #region ========== 私有方法 - 事件回调 ==========
 ## 处理技能完成信号（由 Ability 发出）
 ## [param] ability: GameplayAbilityInstance 完成的技能实例
