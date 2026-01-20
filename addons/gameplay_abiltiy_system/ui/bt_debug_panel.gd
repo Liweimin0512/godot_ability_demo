@@ -24,6 +24,13 @@ var _selected_instance: GameplayAbilityInstance = null
 # 树视图根节点
 var _tree_root_item: TreeItem = null
 
+func _ready() -> void:
+	# 连接信号
+	entity_list.item_selected.connect(_on_entity_selected)
+	refresh_button.pressed.connect(_on_refresh_pressed)
+	clear_history_button.pressed.connect(_on_clear_history_pressed)
+
+
 func _process(delta: float) -> void:
 	if not visible:
 		return
@@ -355,4 +362,22 @@ func _on_entity_selected(index: int) -> void:
 	_update_tree_view()
 	_update_blackboard_view()
 	_update_active_nodes_view()
+	_update_execution_history_view()
+
+## 刷新按钮回调
+func _on_refresh_pressed() -> void:
+	_scan_entities()
+
+## 清空执行记录按钮回调
+func _on_clear_history_pressed() -> void:
+	if not is_instance_valid(_selected_instance):
+		return
+
+	var bt_instance = _selected_instance._bt_instance
+	if not is_instance_valid(bt_instance):
+		return
+
+	# 清空执行历史
+	bt_instance.execution_history.clear()
+	# 立即更新视图
 	_update_execution_history_view()

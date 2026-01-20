@@ -39,7 +39,7 @@ func _tick(instance: BTInstance, delta: float) -> int:
 			# 先重置信号触发状态，再设置变量为 false
 			# 这样可以避免在退出时再次触发信号
 			_set_signal_triggered(instance, false)
-			instance.blackboard.set_var(signal_key, false)
+			_set_var(instance, signal_key, false)
 		return Status.SUCCESS
 
 	# B. 检查超时

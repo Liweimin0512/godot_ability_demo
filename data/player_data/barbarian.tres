@@ -9,7 +9,7 @@
 [ext_resource type="Resource" uid="uid://r3i2dx5llb3c" path="res://data/abilities/fireball_ability.tres" id="6_80eqs"]
 [ext_resource type="Resource" uid="uid://dp3c4xicn4jo0" path="res://data/abilities/damage_reduction_shield_passive.tres" id="6_dfdl6"]
 [ext_resource type="Resource" uid="uid://dttqbxpvo1e7d" path="res://data/vitals/health_vital.tres" id="6_fl65l"]
-[ext_resource type="Resource" uid="uid://d2n1yron43w3d" path="res://data/abilities/attack_ability.tres" id="7_80eqs"]
+[ext_resource type="Resource" uid="uid://5cjlth81omq3" path="res://data/abilities/combo_attack.tres" id="7_80eqs"]
 [ext_resource type="Resource" uid="uid://ks8eqy4dry5b" path="res://data/vitals/mana_vital.tres" id="7_bhydp"]
 
 [resource]

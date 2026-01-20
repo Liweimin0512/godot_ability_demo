@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ComboAbilityDefinition" load_steps=9 format=3 uid="uid://5cjlth81omq3"]
+
+[ext_resource type="Script" uid="uid://bi6pufwhna1aj" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/active_ability_definition.gd" id="1_tduoh"]
+[ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="2_uisbl"]
+[ext_resource type="Resource" uid="uid://d2n1yron43w3d" path="res://data/abilities/attack_ability.tres" id="2_yin5n"]
+[ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="3_7mimf"]
+[ext_resource type="Resource" uid="uid://dmnooaeqi2456" path="res://data/abilities/heavy_attack.tres" id="3_kryxh"]
+[ext_resource type="Script" uid="uid://b4xpwtqucvlch" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/combo_ability_definition.gd" id="4_yin5n"]
+[ext_resource type="Script" uid="uid://cerfta25urv6h" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/vital_cost.gd" id="5_qe3at"]
+
+[sub_resource type="Resource" id="Resource_b1qqw"]
+script = ExtResource("5_qe3at")
+metadata/_custom_type_script = "uid://cerfta25urv6h"
+
+[resource]
+script = ExtResource("4_yin5n")
+combo_steps = Array[ExtResource("1_tduoh")]([ExtResource("2_yin5n"), ExtResource("2_yin5n"), ExtResource("3_kryxh")])
+window_duration = 1.0
+costs = Array[ExtResource("2_uisbl")]([SubResource("Resource_b1qqw")])
+cooldown_duration = 1.0
+input_action = &"attack"
+ability_id = &"combo_attack"
+ability_name = "三连击"
+description = "连续的攻击，造成更多伤害"
+metadata/_custom_type_script = "uid://b4xpwtqucvlch"

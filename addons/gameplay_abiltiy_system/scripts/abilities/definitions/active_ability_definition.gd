@@ -51,7 +51,7 @@ func _get_execution_tree() -> BTNode:
 	return _cached_default_tree
 
 ## 动态构建行为树结构 (构建的是 BTNode 资源图，而不是 Instance)
-func _build_default_behavior_tree(include_cooldown: bool = true) -> BTNode:
+func _build_default_behavior_tree(include_cooldown: bool = true, include_cost: bool = true) -> BTNode:
 	var sequence = BTSequence.new()
 	var nodes: Array[BTNode] = []
 
@@ -71,13 +71,13 @@ func _build_default_behavior_tree(include_cooldown: bool = true) -> BTNode:
 		nodes.append(wait)
 
 	# 3. 提交冷却 (前摇结束后进CD)
-	if cooldown_duration > 0.0:
+	if include_cooldown and cooldown_duration > 0.0:
 		var commit_cd = AbilityNodeCommitCooldown.new()
 		commit_cd.node_id = "commit_cooldown"
 		nodes.append(commit_cd)
 
 	# 4. 应用消耗
-	if not costs.is_empty():
+	if include_cost and not costs.is_empty():
 		var commit_cost = AbilityNodeCommitCost.new()
 		commit_cost.node_id = "commit_cost"
 		nodes.append(commit_cost)

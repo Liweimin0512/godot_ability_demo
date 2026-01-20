@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="ActiveAbilityDefinition" load_steps=14 format=3 uid="uid://dmnooaeqi2456"]
+
+[ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_lsrl3"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="2_sd8r2"]
+[ext_resource type="Resource" uid="uid://bh40t4m117cg5" path="res://data/cues/damage_cue.tres" id="3_bvqjp"]
+[ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="3_ld5ic"]
+[ext_resource type="Script" uid="uid://bi6pufwhna1aj" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/active_ability_definition.gd" id="4_b4kma"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="4_kawta"]
+[ext_resource type="Script" uid="uid://cra1yv70jj5sn" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_apply_damage.gd" id="5_lbseu"]
+[ext_resource type="Texture2D" uid="uid://ctj6y75llx3sp" path="res://assets/textures/heavy_attack_ability.tres" id="7_bvqjp"]
+[ext_resource type="Script" uid="uid://d4dx1ucwohpq1" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/hit_detector/melee_box_hit_detector.gd" id="9_wryr6"]
+[ext_resource type="Script" uid="uid://by7ais2w8q57b" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/hit_detector_targeting_strategy.gd" id="10_c1lxn"]
+
+[sub_resource type="Resource" id="Resource_55x0q"]
+script = ExtResource("5_lbseu")
+damage_multiplier = 1.5
+cue = ExtResource("3_bvqjp")
+metadata/_custom_type_script = "uid://cra1yv70jj5sn"
+
+[sub_resource type="Resource" id="Resource_bgjd6"]
+script = ExtResource("9_wryr6")
+box_extents = Vector3(0.75, 0.75, 0.75)
+offset = Vector3(0, 0.75, 1)
+collision_mask = 16
+debug_draw_enabled = true
+metadata/_custom_type_script = "uid://d4dx1ucwohpq1"
+
+[sub_resource type="Resource" id="Resource_rdqs1"]
+script = ExtResource("10_c1lxn")
+hit_detector = SubResource("Resource_bgjd6")
+metadata/_custom_type_script = "uid://by7ais2w8q57b"
+
+[resource]
+script = ExtResource("4_b4kma")
+animation_name = &"jump_attack"
+pre_cast_delay = 0.6
+post_cast_delay = 0.4
+cooldown_duration = 1.0
+effects = Array[ExtResource("2_sd8r2")]([SubResource("Resource_55x0q")])
+targeting_strategy = SubResource("Resource_rdqs1")
+input_action = &"attack"
+ability_id = &"heavy_attack"
+ability_name = "重击"
+description = "重击，跳起来打！"
+icon = ExtResource("7_bvqjp")
+metadata/_custom_type_script = "uid://bm4h231fb21pv"
