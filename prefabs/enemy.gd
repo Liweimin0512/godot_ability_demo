@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 @onready var animation_tree: AnimationTree = $Skeleton_Warrior/AnimationTree
+@onready var attribute_component: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
 
 # 预留给掉落物的插槽 (稍后制作)
 @export var loot_scene: PackedScene 
@@ -12,6 +13,12 @@ var animation_state_machine : AnimationNodeStateMachinePlayback
 
 func _ready() -> void:
 	animation_state_machine = animation_tree.get("parameters/StateMachine/playback")
+	attribute_component.initialize()
+	var health_vital : HealthVital = attribute_component.get_vital("health")
+	health_vital.damage_applied.connect(
+		func(_damage_info: DamageInfo, _final_damage: float) -> void:
+			play_animation("hit")
+	)
 	hide()
 
 func awaken() -> void:
@@ -52,3 +59,11 @@ func spawn_loot() -> void:
 	# 给它一个随机的爆炸推力！
 	var random_dir = Vector3(randf_range(-2, 2), 2, randf_range(-2, 2)).normalized()
 	loot.apply_impulse(random_dir * 5.0)
+
+func play_animation(anim_name : StringName, anim_speed: float = 1.0) -> void:
+	if not is_instance_valid(animation_state_machine):
+		animation_state_machine = animation_tree.get("parameters/StateMachine/playback")
+	if not is_instance_valid(animation_state_machine): return
+	animation_state_machine.travel(anim_name)
+	animation_tree.set("parameters/TimeScale/scale", anim_speed)
+	

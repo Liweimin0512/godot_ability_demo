@@ -20,7 +20,10 @@ func _execute(target: Node, location: Vector3, context: Dictionary) -> void:
 
 	# 检查是否允许重复创建
 	if not allow_duplicate and _attached_particles.has(target):
-		return
+		var existing_particle = _attached_particles[target]
+		if is_instance_valid(existing_particle):
+			return
+		_attached_particles.erase(target)
 
 	var particle = particle_scene.instantiate()
 	if not is_instance_valid(particle):

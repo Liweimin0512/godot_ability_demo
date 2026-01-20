@@ -24,6 +24,7 @@ AbilityEventBus="*res://addons/gameplay_abiltiy_system/scripts/singletons/abilit
 GameplayCueManager="*res://addons/gameplay_abiltiy_system/scripts/singletons/gameplay_cue_manager.gd"
 Panku="*res://addons/panku_console/console.tscn"
 ConsoleCommands="*res://scripts/singletons/console_commands.gd"
+DebugDraw="*res://addons/zylann.debug_draw/debug_draw.gd"
 
 [debug_draw_3d]
 
@@ -119,9 +120,5 @@ mouse_right={
 3d_physics/layer_1="Environment"
 3d_physics/layer_2="Player"
 3d_physics/layer_4="Enemy"
+3d_physics/layer_5="hurt_box"
 3d_physics/layer_8="Interaction"
-
-[rendering]
-
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"

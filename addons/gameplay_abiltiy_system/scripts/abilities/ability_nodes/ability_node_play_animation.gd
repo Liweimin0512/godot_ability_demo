@@ -1,4 +1,4 @@
-extends 
+extends AbilityNodeBase
 class_name AbilityNodePlayAnimation
 
 enum CastTargetType{
@@ -32,7 +32,7 @@ func _enter(instance: BTInstance) -> void:
 			push_warning("AbilityNodePlayAnimation: 方法 '%s' 在 AbilityInstance 上不存在。动画 '%s' 播放失败。" % [play_animation_method, animation_name])
 			continue
 
-			target.call(play_animation_method, animation_name, animation_speed)
+		target.call(play_animation_method, animation_name, animation_speed)
 
 func _tick(instance: BTInstance, delta: float) -> int:
 	return Status.SUCCESS

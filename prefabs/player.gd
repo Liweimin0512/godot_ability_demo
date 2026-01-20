@@ -113,7 +113,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var mouse_pos = get_mouse_world_pos()
 			# 即使是智能施法，最好也让 Strategy 计算一下修正坐标，
 			# 但为了简化，这里直接传位置，或者手动获取 strategy 计算
-			var smart_context = {"target_position": mouse_pos}
+			var smart_context = {"target_position": mouse_pos, "facing_direction": _get_facing_direction()}
 			var success = ability_component.try_activate_ability(ability_id, smart_context)
 			if success:
 				get_viewport().set_input_as_handled()
@@ -205,3 +205,6 @@ func _try_interact() -> void:
 		# 检查目标是否有 interact 方法
 		if target.has_method("interact"):
 			target.interact()
+
+func _get_facing_direction() -> Vector3:
+	return visuals.global_transform.basis * Vector3.FORWARD
