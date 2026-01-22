@@ -46,6 +46,7 @@ enabled=PackedStringArray("res://addons/gameplay_abiltiy_system/plugin.cfg", "re
 [global_group]
 
 Entities=""
+Enemies=""
 
 [input]
 

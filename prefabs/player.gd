@@ -33,6 +33,17 @@ func _ready() -> void:
 		for i in range(3):
 			inventory_component.add_item(potion.duplicate())
 
+	AbilityEventBus.game_event_occurred.connect(
+		func(event_type: StringName, event_context: Dictionary) -> void:
+			if event_type != "ability_button_pressed":
+				return
+			var ability_id : StringName = event_context.get("ability_id", "")
+			if ability_id.is_empty():
+				push_error("Player: ability id is empty, 无法预览！")
+				return
+			_request_ability_preview(ability_id)
+	)
+
 	vital_component.initialize(player_data.attribute_sets, player_data.vitals)
 	ability_component.initialize(player_data.initial_abilities)
 
@@ -105,19 +116,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# 获取所有已学会的技能，检查输入匹配
 	var ability_id : StringName = ability_component.match_input(event)
-	if not ability_id.is_empty():
-		# 请求预览
-		var ability = ability_component.request_ability_preview(ability_id)
-		if ability  == null:
-			# 返回 null 说明是智能施法或瞬发，立即执行
-			var mouse_pos = get_mouse_world_pos()
-			# 即使是智能施法，最好也让 Strategy 计算一下修正坐标，
-			# 但为了简化，这里直接传位置，或者手动获取 strategy 计算
-			var smart_context = {"target_position": mouse_pos, "facing_direction": _get_facing_direction()}
-			var success = ability_component.try_activate_ability(ability_id, smart_context)
-			if success:
-				get_viewport().set_input_as_handled()
-				print("技能释放成功: ", ability_id)
+	_request_ability_preview(ability_id)
 
 	# 2. 鼠标左键：确认施法
 	if event.is_action_pressed("mouse_left"):
@@ -126,6 +125,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			var mouse_pos = get_mouse_world_pos()
 			# 确认预览，获取 Context 数据 (包含 position/direction)
 			var context = targeting_ability.confirm_targeting(mouse_pos)
+			context["targets"] = get_tree().get_nodes_in_group("Enemies")
 			# 正式激活技能
 			ability_component.try_activate_ability(
 				targeting_ability.get_definition().ability_id, 
@@ -133,7 +133,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			)
 			# 清空当前预览技能（Component 内部会处理）
 			current_targeting_ability = null
-			get_viewport().set_input_as_handled() # 阻止点击移动
+		get_viewport().set_input_as_handled() # 阻止点击移动
 
 	# 3. 鼠标右键：取消施法
 	if event.is_action_pressed("mouse_right"):
@@ -178,6 +178,9 @@ func get_inventory() -> C_Inventory:
 func get_attachment_point(attachment_point: StringName) -> Node3D:
 	return _attachment_points.get(attachment_point, null)
 
+func get_visuals() -> Node3D:
+	return visuals
+
 func get_facing_angle() -> float:
 	if is_instance_valid(visuals) and visuals is Node3D:
 		return visuals.rotation.y
@@ -192,7 +195,23 @@ func _play_anim(anim_name: String, anim_speed: float = 1.0) -> void:
 	if not is_instance_valid(animation_state_machine): return
 	animation_state_machine.travel(anim_name)
 	animation_tree.set("parameters/TimeScale/scale", anim_speed)
-	
+
+func _request_ability_preview(ability_id: StringName) -> void:
+	if ability_id.is_empty():
+		return
+	# 请求预览
+	var ability = ability_component.request_ability_preview(ability_id)
+	if ability  == null:
+		# 返回 null 说明是智能施法或瞬发，立即执行
+		var mouse_pos = get_mouse_world_pos()
+		# 即使是智能施法，最好也让 Strategy 计算一下修正坐标，
+		# 但为了简化，这里直接传位置，或者手动获取 strategy 计算
+		var smart_context = {"target_position": mouse_pos, "facing_direction": _get_facing_direction()}
+		var success = ability_component.try_activate_ability(ability_id, smart_context)
+		if success:
+			get_viewport().set_input_as_handled()
+			print("技能释放成功: ", ability_id)
+
 func _set_movement_blend_position(blend_position: float) -> void:
 	animation_tree.set("parameters/StateMachine/movement/blend_position", blend_position)
 

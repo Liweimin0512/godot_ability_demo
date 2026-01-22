@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="ProjectileData" load_steps=13 format=3 uid="uid://ctfv4lfbnbkyo"]
+
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="1_0onn6"]
+[ext_resource type="Script" uid="uid://ctmye8dvbej1a" path="res://addons/gameplay_abiltiy_system/scripts/entites/projectile_strategy/homing_movement_strategy.gd" id="1_oydyv"]
+[ext_resource type="Script" uid="uid://b5e67ksqgqmco" path="res://addons/gameplay_abiltiy_system/scripts/entites/projectile_data.gd" id="2_7jch6"]
+[ext_resource type="PackedScene" uid="uid://c2gykvkfrkhji" path="res://prefabs/arcane.tscn" id="2_ad1lb"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="2_cc7c1"]
+[ext_resource type="Resource" uid="uid://bh40t4m117cg5" path="res://data/cues/damage_cue.tres" id="3_oydyv"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="4_ovlgk"]
+[ext_resource type="Script" uid="uid://cra1yv70jj5sn" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_apply_damage.gd" id="5_io0v4"]
+[ext_resource type="Script" uid="uid://ctnmjf6pyjfeu" path="res://addons/gameplay_abiltiy_system/scripts/status/features/status_feature.gd" id="6_bohh2"]
+
+[sub_resource type="Resource" id="Resource_ovlgk"]
+script = ExtResource("1_oydyv")
+metadata/_custom_type_script = "uid://ctmye8dvbej1a"
+
+[sub_resource type="Resource" id="Resource_d5xps"]
+script = ExtResource("5_io0v4")
+cue = ExtResource("3_oydyv")
+metadata/_custom_type_script = "uid://cra1yv70jj5sn"
+
+[sub_resource type="Resource" id="Resource_h31w2"]
+script = ExtResource("1_0onn6")
+duration = 0.0
+apply_effects = Array[ExtResource("2_cc7c1")]([SubResource("Resource_d5xps")])
+metadata/_custom_type_script = "uid://8u46anns2vhm"
+
+[resource]
+script = ExtResource("2_7jch6")
+piercing = true
+movement_strategy = SubResource("Resource_ovlgk")
+projectile_scene = ExtResource("2_ad1lb")
+payload_statuses = Dictionary[ExtResource("1_0onn6"), int]({
+SubResource("Resource_h31w2"): 1
+})
+metadata/_custom_type_script = "uid://b5e67ksqgqmco"

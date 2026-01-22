@@ -90,11 +90,8 @@ func _build_default_behavior_tree(include_cooldown: bool = true, include_cost: b
 		nodes.append(target_search_node)
 
 	# 6. 应用效果
-	if not effects.is_empty():
-		var effect_node = AbilityNodeApplyEffect.new()
-		effect_node.effects = effects.duplicate()
-		effect_node.target_key = target_key
-		effect_node.node_id = "apply_effect"
+	var effect_node := _build_effect_nodes()
+	if is_instance_valid(effect_node):
 		nodes.append(effect_node)
 
 	# 7. 后摇等待
@@ -108,6 +105,15 @@ func _build_default_behavior_tree(include_cooldown: bool = true, include_cost: b
 	sequence.children = nodes
 	sequence.node_id = "ability_sequence"
 	return sequence
+
+func _build_effect_nodes() -> BTNode:
+	if not effects.is_empty():
+		var effect_node = AbilityNodeApplyEffect.new()
+		effect_node.effects = effects.duplicate()
+		effect_node.target_key = target_key
+		effect_node.node_id = "apply_effect"
+		return effect_node
+	return null
 
 ## 在 Instance 中注入 Feature（不修改 Definition，避免资源污染）
 func _inject_features_to_instance(instance: GameplayAbilityInstance) -> void:

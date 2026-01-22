@@ -52,5 +52,4 @@ func _on_btn_pressed(ability: GameplayAbilityInstance, btn: AbilityButton) -> vo
 		return
 	
 	var ability_id := ability.get_definition().ability_id
-	if _component.can_activate_ability(ability_id):
-		_component.try_activate_ability(ability_id)
+	AbilityEventBus.trigger_game_event(&"ability_button_pressed", {"ability_id": ability_id})

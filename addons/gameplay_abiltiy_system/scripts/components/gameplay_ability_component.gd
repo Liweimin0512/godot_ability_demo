@@ -335,4 +335,5 @@ func _on_ability_completed(ability: GameplayAbilityInstance) -> void:
 			"ability_id": ability_id
 		})
 		_current_casting_ability = null
+		_current_targeting_ability = null
 #endregion
