@@ -5,7 +5,7 @@ class_name BTWaitSignal
 ## 职责：挂起行为树，直到收到黑板变量变更通知，或超时
 
 @export var signal_key: String = "event_input_received"
-@export var timeout: float = 0.8
+@export var timeout: float = 0.8   # < 0 表示无限等待
 @export var consume_signal: bool = true # 是否消费信号
 
 ## [回调] 当黑板数据改变时，由 Instance 调用
@@ -43,9 +43,10 @@ func _tick(instance: BTInstance, delta: float) -> int:
 		return Status.SUCCESS
 
 	# B. 检查超时
-	_set_elapsed(instance, _get_elapsed(instance) + delta)
-	if _get_elapsed(instance) >= timeout:
-		return Status.FAILURE
+	if timeout >= 0.0:
+		_set_elapsed(instance, _get_elapsed(instance) + delta)
+		if _get_elapsed(instance) >= timeout:
+			return Status.FAILURE
 	return Status.RUNNING
 
 func _set_signal_triggered(instance: BTInstance, value: bool) -> void:

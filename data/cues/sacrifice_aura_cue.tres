@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="GameplayCue" load_steps=4 format=3 uid="uid://dkogr54pn8syr"]
+
+[ext_resource type="Script" uid="uid://cyc24nfkwkmo1" path="res://addons/gameplay_abiltiy_system/scripts/cues/gameplay_cue_base.gd" id="1_l0r4y"]
+[ext_resource type="Script" uid="uid://6mcxpdojhh7u" path="res://addons/gameplay_abiltiy_system/scripts/cues/gameplay_cue.gd" id="2_3d4rm"]
+[ext_resource type="Resource" uid="uid://cxpu8cdu7sqit" path="res://data/cues/sacrifice_aura_cue_attached_particle.tres" id="2_jnf1l"]
+
+[resource]
+script = ExtResource("2_3d4rm")
+cues = Array[ExtResource("1_l0r4y")]([ExtResource("2_jnf1l")])
+metadata/_custom_type_script = "uid://6mcxpdojhh7u"

@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="SacrificeAbilityDefinition" load_steps=22 format=3 uid="uid://6gemngjv4ru5"]
+
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="1_jim2a"]
+[ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_r5oxu"]
+[ext_resource type="Script" uid="uid://bdicm7f5b0ccx" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/hit_detector/area_hit_detector.gd" id="2_mmj6f"]
+[ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="2_qx6w0"]
+[ext_resource type="Script" uid="uid://duixhfg5cq5s6" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/area_targeting_strategy.gd" id="3_5valn"]
+[ext_resource type="Texture2D" uid="uid://3xj3161w2yfu" path="res://assets/textures/sacrifice.tres" id="3_qx6w0"]
+[ext_resource type="Script" uid="uid://b66d3ysow1niw" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/sacrifice_ability_definition.gd" id="3_w6leb"]
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="4_e5mj2"]
+[ext_resource type="Texture2D" uid="uid://bf3sktt3rk10v" path="res://assets/textures/sacrifice_when_active.tres" id="4_w6leb"]
+[ext_resource type="Script" uid="uid://cerfta25urv6h" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/vital_cost.gd" id="5_mmj6f"]
+[ext_resource type="Resource" uid="uid://bh40t4m117cg5" path="res://data/cues/damage_cue.tres" id="8_tgmls"]
+[ext_resource type="Script" uid="uid://cra1yv70jj5sn" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_apply_damage.gd" id="9_pacr2"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="10_3g8i0"]
+[ext_resource type="Script" uid="uid://dfajyicg33ork" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/self_targeting_strategy.gd" id="13_tgmls"]
+[ext_resource type="Resource" uid="uid://b0ybj8fonwioh" path="res://data/ability_status/sacrifice_status.tres" id="14_5valn"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_lb6a1"]
+
+[sub_resource type="Resource" id="Resource_rrkt5"]
+script = ExtResource("2_mmj6f")
+detection_shape = SubResource("SphereShape3D_lb6a1")
+collision_mask = 16
+metadata/_custom_type_script = "uid://bdicm7f5b0ccx"
+
+[sub_resource type="Resource" id="Resource_vcovs"]
+script = ExtResource("3_5valn")
+hit_detector = SubResource("Resource_rrkt5")
+metadata/_custom_type_script = "uid://duixhfg5cq5s6"
+
+[sub_resource type="Resource" id="Resource_5valn"]
+script = ExtResource("5_mmj6f")
+amount = 15.0
+metadata/_custom_type_script = "uid://cerfta25urv6h"
+
+[sub_resource type="Resource" id="Resource_fq1tn"]
+script = ExtResource("9_pacr2")
+damage_multiplier = 0.5
+cue = ExtResource("8_tgmls")
+metadata/_custom_type_script = "uid://cra1yv70jj5sn"
+
+[sub_resource type="Resource" id="Resource_pacr2"]
+script = ExtResource("13_tgmls")
+metadata/_custom_type_script = "uid://dfajyicg33ork"
+
+[resource]
+script = ExtResource("3_w6leb")
+area_targeting_strategy = SubResource("Resource_vcovs")
+periodic_damage_effect = SubResource("Resource_fq1tn")
+cooldown_duration = 5.0
+costs = Array[ExtResource("1_r5oxu")]([SubResource("Resource_5valn")])
+toggle_statuses = Dictionary[ExtResource("4_e5mj2"), int]({
+ExtResource("14_5valn"): 1
+})
+targeting_strategy = SubResource("Resource_pacr2")
+icon_when_active = ExtResource("4_w6leb")
+ability_id = &"sacrifice"
+ability_name = "献祭"
+icon = ExtResource("3_qx6w0")
+metadata/_custom_type_script = "uid://b66d3ysow1niw"

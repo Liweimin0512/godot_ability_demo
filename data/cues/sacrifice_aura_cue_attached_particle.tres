@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CueAttachedParticle" load_steps=3 format=3 uid="uid://cxpu8cdu7sqit"]
+
+[ext_resource type="PackedScene" uid="uid://c07q78uq46kmo" path="res://prefabs/fx/s_immolation_aura.tscn" id="1_pj64b"]
+[ext_resource type="Script" uid="uid://mop1sgag2ypw" path="res://addons/gameplay_abiltiy_system/scripts/cues/cue_attached_particle.gd" id="2_e0ll5"]
+
+[resource]
+script = ExtResource("2_e0ll5")
+particle_scene = ExtResource("1_pj64b")
+attachment_point = &"body"
+metadata/_custom_type_script = "uid://6mcxpdojhh7u"

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=6 format=3 uid="uid://b0ybj8fonwioh"]
+
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="1_p6mgc"]
+[ext_resource type="Script" uid="uid://ctnmjf6pyjfeu" path="res://addons/gameplay_abiltiy_system/scripts/status/features/status_feature.gd" id="2_qqcta"]
+[ext_resource type="Resource" uid="uid://dkogr54pn8syr" path="res://data/cues/sacrifice_aura_cue.tres" id="2_y14ln"]
+[ext_resource type="Texture2D" uid="uid://3xj3161w2yfu" path="res://assets/textures/sacrifice.tres" id="3_qqcta"]
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="3_y14ln"]
+
+[resource]
+script = ExtResource("3_y14ln")
+status_id = &"sacrifice"
+status_display_name = "献祭"
+icon = ExtResource("3_qqcta")
+cue = ExtResource("2_y14ln")
+metadata/_custom_type_script = "uid://8u46anns2vhm"

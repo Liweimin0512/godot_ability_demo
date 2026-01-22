@@ -1,0 +1,67 @@
+[gd_scene load_steps=6 format=3 uid="uid://c07q78uq46kmo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3barq"]
+transparency = 3
+alpha_hash_scale = 1.0
+alpha_antialiasing_mode = 0
+albedo_color = Color(0.2716998, 0.88393724, 0.4072413, 0.40600002)
+
+[sub_resource type="SphereMesh" id="SphereMesh_llsgt"]
+material = SubResource("StandardMaterial3D_3barq")
+radius = 1.0
+height = 2.0
+
+[sub_resource type="Animation" id="Animation_3barq"]
+resource_name = "shield_breathe"
+length = 1.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MeshInstance3D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6, 0.9, 1.2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [Vector3(1, 1, 1), Vector3(0.9, 0.9, 0.9), Vector3(1, 1, 1), Vector3(1.1, 1.1, 1.1), Vector3(1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_llsgt"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MeshInstance3D:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_llsgt"]
+_data = {
+&"RESET": SubResource("Animation_llsgt"),
+&"shield_breathe": SubResource("Animation_3barq")
+}
+
+[node name="SImmolationAura" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_llsgt")
+skeleton = NodePath("../GPUParticles3D")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="."]
+light_color = Color(1.3480217, 3.9772933, 1.9301089, 0.40600002)
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_llsgt")
+}
+autoplay = "shield_breathe"

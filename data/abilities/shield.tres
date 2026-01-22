@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="ToggleAbilityDefinition" load_steps=13 format=3 uid="uid://h0khiha2ln3l"]
+
+[ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_c4y04"]
+[ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="2_60dx6"]
+[ext_resource type="Script" uid="uid://cerfta25urv6h" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/vital_cost.gd" id="2_cit22"]
+[ext_resource type="Script" uid="uid://bomdqsuwdcrtn" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/toggle_ability_definition.gd" id="3_3muxh"]
+[ext_resource type="Texture2D" uid="uid://bnsp6bkgvua6g" path="res://assets/textures/shield.tres" id="3_cit22"]
+[ext_resource type="Texture2D" uid="uid://cy40bwnoamr4w" path="res://assets/textures/shield_when_active.tres" id="4_b51v8"]
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="4_cit22"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="7_bo6kp"]
+[ext_resource type="Script" uid="uid://dfajyicg33ork" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/self_targeting_strategy.gd" id="8_brl0b"]
+[ext_resource type="Resource" uid="uid://bn5vcaouea28f" path="res://data/ability_status/damage_reduction_shield_status.tres" id="10_58lnq"]
+
+[sub_resource type="Resource" id="Resource_b51v8"]
+script = ExtResource("2_cit22")
+metadata/_custom_type_script = "uid://cerfta25urv6h"
+
+[sub_resource type="Resource" id="Resource_lf3tr"]
+script = ExtResource("8_brl0b")
+metadata/_custom_type_script = "uid://dfajyicg33ork"
+
+[resource]
+script = ExtResource("3_3muxh")
+cooldown_duration = 5.0
+costs = Array[ExtResource("1_c4y04")]([SubResource("Resource_b51v8")])
+toggle_statuses = Dictionary[ExtResource("4_cit22"), int]({
+ExtResource("10_58lnq"): 1
+})
+targeting_strategy = SubResource("Resource_lf3tr")
+icon_when_active = ExtResource("4_b51v8")
+ability_id = &"shield"
+ability_name = "护盾"
+icon = ExtResource("3_cit22")
+metadata/_custom_type_script = "uid://bomdqsuwdcrtn"

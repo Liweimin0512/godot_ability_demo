@@ -271,7 +271,7 @@ func _update_execution_history_view() -> void:
 		blackboard_view.text = text
 		return
 
-	var display_count = min(history_count, 20)  # 最多显示20条
+	var display_count = min(history_count, 40)  # 最多显示20条
 	for i in range(history_count - display_count, history_count):
 		var record : Dictionary = history[i]
 		var node = record.get("node", null)
@@ -310,7 +310,7 @@ func _update_execution_history_view() -> void:
 				status_text,
 				frame
 			]
-	blackboard_view.text = text
+	execution_history_view.text = text
 
 ## 将状态颜色转换为十六进制字符串（用于 BBCode）
 func _status_color_to_hex(color: Color) -> String:

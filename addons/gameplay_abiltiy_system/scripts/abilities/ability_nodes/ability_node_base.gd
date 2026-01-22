@@ -47,3 +47,15 @@ func _get_first_target(instance: BTInstance, use_instigator_as_fallback: bool = 
 	if target_list.is_empty():
 		return null
 	return target_list[0]
+
+## 验证上下文是否有效
+## [param] instance: BTInstance 行为树实例
+## [param] node_name: String 节点名称（用于错误提示）
+## [return] bool 上下文是否有效
+func _validate_context(instance: BTInstance, node_name: String = "") -> bool:
+	var context = _get_context(instance)
+	if context.is_empty():
+		var name_str = node_name if not node_name.is_empty() else get_script().get_path().get_file()
+		push_warning("%s: Context is empty!" % name_str)
+		return false
+	return true
