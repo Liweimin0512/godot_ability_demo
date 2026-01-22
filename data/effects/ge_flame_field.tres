@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GE_SpawnMagicField" load_steps=5 format=3 uid="uid://cyef4184rqnms"]
+
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="1_5410k"]
+[ext_resource type="Resource" uid="uid://rbre7q2tjqhd" path="res://data/magic_fields/magic_field_data_flame_field.tres" id="2_2w1kh"]
+[ext_resource type="Script" uid="uid://xtlopfshh62h" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_spawn_magic_field.gd" id="2_vmwvo"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="3_2w1kh"]
+
+[resource]
+script = ExtResource("2_vmwvo")
+magic_field_data = ExtResource("2_2w1kh")
+metadata/_custom_type_script = "uid://xtlopfshh62h"

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MagicFieldData" load_steps=5 format=3 uid="uid://btkjcak12w8jm"]
+
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="1_7crxt"]
+[ext_resource type="PackedScene" uid="uid://benbwxncbqsc8" path="res://prefabs/fireball_explosion_aoe.tscn" id="1_44143"]
+[ext_resource type="Script" uid="uid://5ga7pr3p1jlw" path="res://addons/gameplay_abiltiy_system/scripts/entites/magic_field_data.gd" id="2_7jhxx"]
+[ext_resource type="Resource" uid="uid://c7bgognybjafi" path="res://data/ability_status/burn_status.tres" id="3_35gjn"]
+
+[resource]
+script = ExtResource("2_7jhxx")
+duration = 0.5
+magic_field_scene = ExtResource("1_44143")
+payload_statuses = Dictionary[ExtResource("1_7crxt"), int]({
+ExtResource("3_35gjn"): 1
+})
+metadata/_custom_type_script = "uid://5ga7pr3p1jlw"

@@ -43,7 +43,10 @@ func apply_effect(entity_name_or_path: String, effect_path: String, instigator_n
 		return "错误: 无法克隆效果资源"
 
 	# 5. 应用效果
-	effect_instance.apply(target, instigator, {})
+	var context = {
+		"projectile_impact": target.global_position
+	}
+	effect_instance.apply(target, instigator, context)
 	return "成功: 已对 '%s' 应用效果 '%s'" % [target.name, effect_path]
 
 ## 列出所有可用单位

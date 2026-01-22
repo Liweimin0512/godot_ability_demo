@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MagicFieldData" load_steps=11 format=3 uid="uid://rbre7q2tjqhd"]
+
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="1_ewtmu"]
+[ext_resource type="PackedScene" uid="uid://bmk4cmxwevvml" path="res://prefabs/flame_field.tscn" id="1_kgl2l"]
+[ext_resource type="Script" uid="uid://5ga7pr3p1jlw" path="res://addons/gameplay_abiltiy_system/scripts/entites/magic_field_data.gd" id="2_711p6"]
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="3_sklmp"]
+[ext_resource type="Resource" uid="uid://bh40t4m117cg5" path="res://data/cues/damage_cue.tres" id="4_cfurg"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="5_jntv5"]
+[ext_resource type="Script" uid="uid://cra1yv70jj5sn" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_apply_damage.gd" id="6_gpsic"]
+[ext_resource type="Script" uid="uid://ctnmjf6pyjfeu" path="res://addons/gameplay_abiltiy_system/scripts/status/features/status_feature.gd" id="7_8dagp"]
+
+[sub_resource type="Resource" id="Resource_x44wt"]
+script = ExtResource("6_gpsic")
+cue = ExtResource("4_cfurg")
+metadata/_custom_type_script = "uid://cra1yv70jj5sn"
+
+[sub_resource type="Resource" id="Resource_prrgq"]
+script = ExtResource("1_ewtmu")
+status_id = &"damage"
+duration = 0.0
+apply_effects = Array[ExtResource("3_sklmp")]([SubResource("Resource_x44wt")])
+metadata/_custom_type_script = "uid://8u46anns2vhm"
+
+[resource]
+script = ExtResource("2_711p6")
+periodic_trigger_interval = 0.5
+magic_field_scene = ExtResource("1_kgl2l")
+payload_statuses = Dictionary[ExtResource("1_ewtmu"), int]({
+SubResource("Resource_prrgq"): 1
+})
+metadata/_custom_type_script = "uid://5ga7pr3p1jlw"
