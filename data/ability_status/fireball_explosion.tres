@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=11 format=3 uid="uid://brwdba5i4qohg"]
+
+[ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="1_7or5q"]
+[ext_resource type="Script" uid="uid://ctnmjf6pyjfeu" path="res://addons/gameplay_abiltiy_system/scripts/status/features/status_feature.gd" id="2_ki6kv"]
+[ext_resource type="Resource" uid="uid://bh40t4m117cg5" path="res://data/cues/damage_cue.tres" id="2_nqr6t"]
+[ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="3_cghor"]
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="3_eu7cs"]
+[ext_resource type="Script" uid="uid://cra1yv70jj5sn" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_apply_damage.gd" id="4_uw6t3"]
+[ext_resource type="Resource" uid="uid://btkjcak12w8jm" path="res://data/magic_fields/magic_field_data_fireball_aoe.tres" id="5_fx2vg"]
+[ext_resource type="Script" uid="uid://xtlopfshh62h" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_spawn_magic_field.gd" id="6_nbfa5"]
+
+[sub_resource type="Resource" id="Resource_wmgco"]
+script = ExtResource("4_uw6t3")
+cue = ExtResource("2_nqr6t")
+metadata/_custom_type_script = "uid://cra1yv70jj5sn"
+
+[sub_resource type="Resource" id="Resource_cik04"]
+script = ExtResource("6_nbfa5")
+magic_field_data = ExtResource("5_fx2vg")
+position_key = "target_position"
+metadata/_custom_type_script = "uid://xtlopfshh62h"
+
+[resource]
+script = ExtResource("3_eu7cs")
+status_display_name = "火球术爆炸"
+duration = 0.0
+apply_effects = Array[ExtResource("1_7or5q")]([SubResource("Resource_wmgco"), SubResource("Resource_cik04")])
+metadata/_custom_type_script = "uid://8u46anns2vhm"

@@ -180,6 +180,7 @@ func _deliver_payload(target: Node, hit_position: Vector3, hit_direction: Vector
 	for status_data in payload_statuses:
 		if not is_instance_valid(status_data):
 			continue
+		print("应用弹头状态： ", status_data.status_display_name)
 		# 获取目标的状态组件
 		var status_comp = GameplayAbilitySystem.get_component_by_interface(target, "GameplayStatusComponent")
 		if is_instance_valid(status_comp):

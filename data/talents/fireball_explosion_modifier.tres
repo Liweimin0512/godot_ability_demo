@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TalentData" load_steps=7 format=3 uid="uid://mo4c6tg33se4"]
+
+[ext_resource type="Script" uid="uid://v1w6sodsjfjb" path="res://scripts/talent/talent_attribute_modifier.gd" id="1_2lft2"]
+[ext_resource type="Script" uid="uid://b8a286noieoi8" path="res://scripts/talent/talent_mechanic_modifier.gd" id="2_hirdl"]
+[ext_resource type="Script" uid="uid://ecfyslf3nvv6" path="res://scripts/talent/talent_effect_modifier.gd" id="2_hyq35"]
+[ext_resource type="Texture2D" uid="uid://ckarr4gl6dpbp" path="res://assets/textures/burn.tres" id="3_t2bjd"]
+[ext_resource type="Resource" uid="uid://g6rk2bi70swq" path="res://data/talents/talent_projectile_payload_modifier.tres" id="4_hyq35"]
+[ext_resource type="Script" uid="uid://uhxqu58736g5" path="res://scripts/talent/talent_data.gd" id="4_t2bjd"]
+
+[resource]
+script = ExtResource("4_t2bjd")
+talent_id = &"fireball_explosion"
+talent_name = "火球术爆炸"
+description = "火球术命中时产生爆炸"
+icon = ExtResource("3_t2bjd")
+mechanic_modifiers = Array[ExtResource("2_hirdl")]([ExtResource("4_hyq35")])
+metadata/_custom_type_script = "uid://uhxqu58736g5"

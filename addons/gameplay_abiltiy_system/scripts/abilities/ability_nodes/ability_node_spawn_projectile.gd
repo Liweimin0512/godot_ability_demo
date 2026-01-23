@@ -137,6 +137,12 @@ func _spawn_projectile(
 		var random_angle = deg_to_rad(randf_range(-spread_angle / 2.0, spread_angle / 2.0))
 		projectile_base.rotate_y(random_angle)
 
+	# 在应用数据前，替换弹头状态
+	if context.has("projectile_payload_replacements"):
+		var replacements = context["projectile_payload_replacements"] as Dictionary
+		if not replacements.is_empty():
+			_apply_payload_replacements(data, replacements)
+
 	projectile_base.instigator = instigator
 	projectile_base.target_reference = target_node
 	data.apply_to_projectile(projectile_base)
@@ -144,3 +150,39 @@ func _spawn_projectile(
 	projectile_base.set_source_context(context)
 
 	return projectile_base
+
+## 应用弹头状态替换
+## [param] data: ProjectileData 投射物数据（会被修改）
+## [param] replacements: Dictionary 替换映射 {原状态ID: 新状态数据}
+func _apply_payload_replacements(data: ProjectileData, replacements: Dictionary) -> void:
+	if not is_instance_valid(data):
+		return
+
+	# 遍历当前弹头状态
+	var new_payload_statuses: Dictionary[GameplayStatusData, int] = {}
+	for old_status_data in data.payload_statuses:
+		if not is_instance_valid(old_status_data):
+			continue
+
+		var old_status_id = old_status_data.status_id
+		var stacks = data.payload_statuses[old_status_data]
+
+		# 检查是否需要替换
+		if replacements.has(old_status_id):
+			var new_status_data = replacements[old_status_id] as GameplayStatusData
+			if is_instance_valid(new_status_data):
+				# 使用新状态替换
+				new_payload_statuses[new_status_data] = stacks
+				print("AbilityNodeSpawnProjectile: Replaced payload status '%s' with '%s'" % [
+					old_status_id,
+					new_status_data.status_id
+				])
+			else:
+				# 新状态无效，保留原状态
+				new_payload_statuses[old_status_data] = stacks
+		else:
+			# 不需要替换，保留原状态
+			new_payload_statuses[old_status_data] = stacks
+
+	# 更新弹头状态
+	data.payload_statuses = new_payload_statuses

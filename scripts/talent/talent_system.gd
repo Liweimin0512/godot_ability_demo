@@ -37,9 +37,9 @@ func activate_talent(talent_id: StringName, talent_data: TalentData, target_enti
 	if not _entity_talents.has(entity_id):
 		_entity_talents[entity_id] = {}
 		_entity_modifiers[entity_id] = {}
-		# 监听实体销毁信号，自动清理
-		if not target_entity.tree_exiting.is_connected(_on_entity_exiting):
-			target_entity.tree_exiting.connect(_on_entity_exiting.bind(entity_id))
+		## 监听实体销毁信号，自动清理
+		#if not target_entity.tree_exiting.is_connected(_on_entity_exiting):
+			#target_entity.tree_exiting.connect(_on_entity_exiting.bind(entity_id))
 
 	# 检查该实体是否已激活此天赋
 	if _entity_talents[entity_id].has(talent_id):
@@ -136,19 +136,19 @@ func get_entity_talent(entity: Node, talent_id : StringName) -> TalentData:
 		return null
 	return _entity_talents[entity.get_instance_id()].get(talent_id)
 
-## 实体销毁时自动清理
-## [param] entity_id: int 实体ID
-func _on_entity_exiting(entity_id: int) -> void:
-	if _entity_talents.has(entity_id):
-		# 清理该实体的所有天赋
-		var talents = _entity_talents[entity_id].duplicate()
-		for talent_id in talents.keys():
-			# 注意：此时实体可能已经部分销毁，通过 source_id 批量清理
-			_cleanup_entity_talent(entity_id, talent_id)
-
-		_entity_talents.erase(entity_id)
-		_entity_modifiers.erase(entity_id)
-		print("TalentSystem: Cleaned up talents for entity %d" % entity_id)
+### 实体销毁时自动清理
+### [param] entity_id: int 实体ID
+#func _on_entity_exiting(entity_id: int) -> void:
+	#if _entity_talents.has(entity_id):
+		## 清理该实体的所有天赋
+		#var talents = _entity_talents[entity_id].duplicate()
+		#for talent_id in talents.keys():
+			## 注意：此时实体可能已经部分销毁，通过 source_id 批量清理
+			#_cleanup_entity_talent(entity_id, talent_id)
+#
+		#_entity_talents.erase(entity_id)
+		#_entity_modifiers.erase(entity_id)
+		#print("TalentSystem: Cleaned up talents for entity %d" % entity_id)
 
 ## 清理实体的天赋（实体销毁时调用）
 ## [param] entity_id: int 实体ID
@@ -266,7 +266,8 @@ func _remove_effect_modifier(entity: Node, talent_id: StringName) -> void:
 ## [param] talent_id: StringName 天赋ID
 func _apply_mechanic_modifier(entity: Node, modifier: TalentMechanicModifier, talent_id: StringName) -> void:
 	# 将在后续章节实现
-	pass
+	if not modifier.payload_status_replacements.is_empty():
+		_apply_projectile_payload_replacement(entity, modifier.ability_id, modifier.payload_status_replacements, talent_id )
 
 ## 移除技能机制修改（占位，后续章节实现）
 ## [param] entity: Node 目标实体
@@ -275,6 +276,42 @@ func _remove_mechanic_modifier(entity: Node, talent_id: StringName) -> void:
 	# 将在后续章节实现
 	pass
 	
+func _apply_projectile_payload_replacement(
+		entity: Node,
+		ability_id: StringName,
+		replacements: Dictionary,
+		talent_id: StringName
+		) -> void:
+	var ability_comp = GameplayAbilitySystem.get_component_by_interface(entity, "GameplayAbilityComponent")
+	if not is_instance_valid(ability_comp):
+		push_warning("TalentSystem: Entity does not have GameplayAbilityComponent")
+		return
+
+	var ability_instance = ability_comp.get_ability_instance(ability_id)
+	if not is_instance_valid(ability_instance):
+		push_warning("TalentSystem: Ability instance '%s' not found" % ability_id)
+		return
+		
+	# 获取或创建 Feature
+	var feature_name = "talent_projectile_payload_" + String(talent_id)
+	var feature = ability_instance.get_feature(feature_name) as ProjectilePayloadModifierFeature
+	if not is_instance_valid(feature):
+		# 创建新 Feature
+		feature = ProjectilePayloadModifierFeature.new()
+		feature.payload_status_replacements = {} as Dictionary[StringName, GameplayStatusData]
+		ability_instance.add_feature(feature_name, feature)
+	# 合并替换映射
+	for old_status_id in replacements:
+		var new_status = replacements[old_status_id] as GameplayStatusData
+		if is_instance_valid(new_status):
+			feature.payload_status_replacements[old_status_id] = new_status
+
+	print("TalentSystem: Applied projectile payload replacement for ability '%s' (talent: %s, replacements: %d)" % [
+		ability_id,
+		talent_id,
+		feature.payload_status_replacements.size()
+	])
+
 ## 为指定技能应用效果修改器
 ## [param] ability_comp: GameplayAbilityComponent 技能组件
 ## [param] ability_id: StringName 技能ID

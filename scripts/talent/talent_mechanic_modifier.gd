@@ -23,3 +23,5 @@ class_name TalentMechanicModifier
 ## 施法时间倍率（乘法叠加）
 ## 例如：0.67 表示施法时间减少 33%（速度提升 50%）
 @export var cast_time_multiplier: float = 1.0
+
+@export var payload_status_replacements: Dictionary[StringName, GameplayStatusData] = {}
