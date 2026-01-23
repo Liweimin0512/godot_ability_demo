@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="TalentAttributeModifier" load_steps=2 format=3 uid="uid://c42angm8ifc3e"]
+
+[ext_resource type="Script" uid="uid://v1w6sodsjfjb" path="res://scripts/talent/talent_attribute_modifier.gd" id="1_jw8ox"]
+
+[resource]
+script = ExtResource("1_jw8ox")
+attribute_id = &"strength"
+value = 10.0
+metadata/_custom_type_script = "uid://v1w6sodsjfjb"

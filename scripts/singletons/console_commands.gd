@@ -95,6 +95,67 @@ func list_effects(directory: String = "res://data/effects/") -> String:
 		result += "  未找到任何 GameplayEffect 资源"
 	return result
 
+## 列出制定目录下的所有 Talent 资源
+func list_talent(directory: String = "res://data/talents/") -> String:
+	var dir = DirAccess.open(directory)
+	if not dir:
+		return "错误: 无法打开目录 '%s'" % directory
+
+	var result = "可用天赋列表 (%s):\n" % directory
+	var count = 0
+
+	dir.list_dir_begin()
+	var file_name = dir.get_next()
+
+	while file_name != "":
+		if dir.current_is_dir():
+			file_name = dir.get_next()
+			continue
+			
+		if file_name.ends_with(".tres"):
+			var full_path = directory.path_join(file_name)
+			var resource = load(full_path)
+			if resource is TalentData:
+				result += "  - %s\n" % [full_path]
+				count += 1
+		file_name = dir.get_next()
+
+	if count == 0:
+		result += "  未找到任何 TalentData 资源"
+	return result
+
+func apply_talent(entity_name_or_path: String, talent_path: String) -> String:
+	# 1. 查找目标单位
+	var target = _find_entity(entity_name_or_path)
+	if not is_instance_valid(target):
+		return "错误: 找不到单位 '%s'" % entity_name_or_path
+
+	# 3. 加载天赋资源
+	if not ResourceLoader.exists(talent_path):
+		return "错误: 天赋资源不存在 '%s'" % talent_path
+
+	var talent_resource = load(talent_path)
+	if not talent_resource is TalentData:
+		return "错误: 资源 '%s' 不是 TalentData 类型" % talent_resource
+
+	var talent_instance = talent_resource.duplicate(true)
+	if not is_instance_valid(talent_instance):
+		return "错误: 无法克隆天赋资源"
+
+	# 5. 应用天赋
+	TalentSystem.activate_talent(talent_instance.talent_id, talent_instance, target)
+	return "成功: 已对 '%s' 激活天赋 '%s'" % [target.name, talent_path]
+
+func deactivate_talent(entity_name_or_path: String, talent_id: StringName) -> String:
+	# 1. 查找目标单位
+	var target = _find_entity(entity_name_or_path)
+	if not is_instance_valid(target):
+		return "错误: 找不到单位 '%s'" % entity_name_or_path
+
+	# 失效天赋
+	TalentSystem.deactivate_talent(talent_id, target)
+	return "成功: 已对 '%s' 失效天赋 '%s'" % [target.name, talent_id]
+
 ## 获取单位的生命值信息
 ## [param] entity_name_or_path: String 单位名称或路径
 ## [return] Dictionary 包含 current 和 max 的字典
@@ -113,6 +174,17 @@ func get_health_info(entity_name_or_path: String) -> Dictionary:
 		"max": health.get_max_value(),
 		"percent": health.get_percent()
 	}
+
+func get_talent_info(entity_name_or_path: String) -> Dictionary:
+	var entity = _find_entity(entity_name_or_path)
+	if not is_instance_valid(entity):
+		return {"error": "找不到单位 '%s'" % entity_name_or_path}
+	var talents := TalentSystem.get_entity_talents(entity)
+	var final_dictionary : Dictionary = {}
+	for talent_id in talents:
+		var talent := TalentSystem.get_entity_talent(entity, talent_id)
+		final_dictionary[talent.talent_id] = talent
+	return final_dictionary
 
 ## 查找单位（支持名称和路径）
 func _find_entity(identifier: String) -> Node:

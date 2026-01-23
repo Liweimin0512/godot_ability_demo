@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TalentData" load_steps=7 format=3 uid="uid://bb58mxy5g4f51"]
+
+[ext_resource type="Script" uid="uid://v1w6sodsjfjb" path="res://scripts/talent/talent_attribute_modifier.gd" id="1_roums"]
+[ext_resource type="Script" uid="uid://ecfyslf3nvv6" path="res://scripts/talent/talent_effect_modifier.gd" id="2_l22ek"]
+[ext_resource type="Resource" uid="uid://c42angm8ifc3e" path="res://data/talents/strength_boost_modifier.tres" id="2_vqpbp"]
+[ext_resource type="Script" uid="uid://b8a286noieoi8" path="res://scripts/talent/talent_mechanic_modifier.gd" id="3_vqpbp"]
+[ext_resource type="Texture2D" uid="uid://b1r0gusae1ipk" path="res://assets/textures/strength_boost_talent.tres" id="4_06xht"]
+[ext_resource type="Script" uid="uid://uhxqu58736g5" path="res://scripts/talent/talent_data.gd" id="4_dvij8"]
+
+[resource]
+script = ExtResource("4_dvij8")
+talent_id = &"strength_boost"
+talent_name = "力量强化"
+description = "永久增加10点力量属性"
+icon = ExtResource("4_06xht")
+attribute_modifiers = Array[ExtResource("1_roums")]([ExtResource("2_vqpbp")])
+metadata/_custom_type_script = "uid://uhxqu58736g5"

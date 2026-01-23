@@ -80,7 +80,7 @@ func deactivate_talent(talent_id: StringName, target_entity: Node) -> void:
 	if not _entity_talents[entity_id].has(talent_id):
 		return
 
-	var talent_data = _entity_talents[entity_id][talent_id]
+	#var talent_data = _entity_talents[entity_id][talent_id]
 
 	# 移除属性修改
 	_remove_attribute_modifier(target_entity, talent_id)
@@ -125,9 +125,16 @@ func get_entity_talents(entity: Node) -> Array[StringName]:
 	var entity_id = entity.get_instance_id()
 	if not _entity_talents.has(entity_id):
 		return final_talent_ids
-
-	final_talent_ids = _entity_talents[entity_id].keys()
+	
+	for talent_id in _entity_talents[entity_id].keys():
+		final_talent_ids.append(talent_id)
 	return final_talent_ids
+
+func get_entity_talent(entity: Node, talent_id : StringName) -> TalentData:
+	var talents := get_entity_talents(entity)
+	if talents.is_empty():
+		return null
+	return _entity_talents[entity.get_instance_id()].get(talent_id)
 
 ## 实体销毁时自动清理
 ## [param] entity_id: int 实体ID
