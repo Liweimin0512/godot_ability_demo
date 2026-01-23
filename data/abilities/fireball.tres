@@ -31,6 +31,7 @@ projectile_data = ExtResource("4_dyx2a")
 cooldown_duration = 2.0
 costs = Array[ExtResource("1_xwpew")]([SubResource("Resource_31md0")])
 targeting_strategy = SubResource("Resource_hsgk6")
+input_action = &"attack"
 ability_id = &"fireball"
 ability_name = "火球术"
 icon = ExtResource("5_0cy71")

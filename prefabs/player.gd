@@ -31,6 +31,7 @@ var current_targeting_ability: GameplayAbilityInstance = null
 # 存储每个装备槽位的属性修改器（slot_id -> Array[GameplayAttributeModifier]）
 var _equipment_modifiers: Dictionary[StringName, Array] = {}
 var _equipment_models: Dictionary[StringName, Node3D]
+var _equipment_abilities : Dictionary[StringName, Array]
 
 func _ready() -> void:
 	animation_state_machine = animation_tree.get("parameters/StateMachine/playback")
@@ -54,6 +55,10 @@ func _ready() -> void:
 
 	vital_component.initialize(player_data.attribute_sets, player_data.vitals)
 	ability_component.initialize(player_data.initial_abilities)
+	ability_component.ability_activated.connect(
+		func(ability: GameplayAbilityInstance) -> void:
+			print("技能激活： ", ability.get_definition().ability_name)
+	)
 
 	inventory_component.equip_changed.connect(_on_equip_changed)
 
@@ -127,34 +132,42 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_pressed() or event.is_echo():
 		return
 
-	# 获取所有已学会的技能，检查输入匹配
-	var ability_id : StringName = ability_component.match_input(event)
-	_request_ability_preview(ability_id)
+	if ability_component.has_targeting_ability():
+		# 2. 鼠标左键：确认施法
+		if event.is_action_pressed("mouse_left"):
+			var targeting_ability = ability_component.get_current_targeting_ability()
+			if is_instance_valid(targeting_ability):
+				var mouse_pos = get_mouse_world_pos()
+				# 确认预览，获取 Context 数据 (包含 position/direction)
+				var context = targeting_ability.confirm_targeting(mouse_pos)
+				context["targets"] = get_tree().get_nodes_in_group("Enemies")
+				# 正式激活技能
+				ability_component.try_activate_ability(
+					targeting_ability.get_definition().ability_id, 
+					context
+				)
+				# 清空当前预览技能（Component 内部会处理）
+				current_targeting_ability = null
+			get_viewport().set_input_as_handled() # 阻止点击移动
 
-	# 2. 鼠标左键：确认施法
-	if event.is_action_pressed("mouse_left"):
-		var targeting_ability = ability_component.get_current_targeting_ability()
-		if is_instance_valid(targeting_ability):
-			var mouse_pos = get_mouse_world_pos()
-			# 确认预览，获取 Context 数据 (包含 position/direction)
-			var context = targeting_ability.confirm_targeting(mouse_pos)
-			context["targets"] = get_tree().get_nodes_in_group("Enemies")
-			# 正式激活技能
-			ability_component.try_activate_ability(
-				targeting_ability.get_definition().ability_id, 
-				context
-			)
-			# 清空当前预览技能（Component 内部会处理）
-			current_targeting_ability = null
-		get_viewport().set_input_as_handled() # 阻止点击移动
+		# 3. 鼠标右键：取消施法
+		if event.is_action_pressed("mouse_right"):
+			var targeting_ability = ability_component.get_current_targeting_ability()
+			if is_instance_valid(targeting_ability):
+				ability_component.cancel_ability_preview()
+				current_targeting_ability = null
+				get_viewport().set_input_as_handled()
 
-	# 3. 鼠标右键：取消施法
-	if event.is_action_pressed("mouse_right"):
-		var targeting_ability = ability_component.get_current_targeting_ability()
-		if is_instance_valid(targeting_ability):
-			ability_component.cancel_ability_preview()
-			current_targeting_ability = null
+	else:
+		# 获取所有已学会的技能，检查输入匹配
+		var ability_id : StringName = ability_component.match_input(event)
+		
+		# 如果匹配到技能快捷键，优先处理快捷键逻辑
+		if not ability_id.is_empty():
+			_request_ability_preview(ability_id)
+			# 标记已处理，跳过后续的鼠标确认/取消逻辑
 			get_viewport().set_input_as_handled()
+			return
 
 ## 辅助函数：获取鼠标在 3D 世界的坐标
 func get_mouse_world_pos() -> Vector3:
@@ -355,6 +368,64 @@ func _remove_equipment_model(equip_slot_name: StringName) -> void:
 	# 清除记录
 	_equipment_models.erase(equip_slot_name)
 
+## 应用装备技能
+## [param] equip: Equip 装备实例（实际应为 GameplayEquip）
+## [param] equip_slot_name: StringName 装备槽名称
+func _apply_equipment_abilities(equip: Equip, equip_slot_name: StringName) -> void:
+	# 检查是否为 GameplayEquip 实例
+	if not equip is GameplayEquip:
+		return
+
+	var gameplay_equip = equip as GameplayEquip
+	if not is_instance_valid(gameplay_equip) or not is_instance_valid(ability_component):
+		return
+
+	# 获取装备的技能列表
+	var abilities = gameplay_equip.abilities
+	if abilities.is_empty():
+		return
+
+	# 存储该装备的所有技能ID
+	var ability_ids: Array[StringName] = []
+	# 遍历装备的所有技能，注册到技能组件
+	for ability_data in abilities:
+		if not is_instance_valid(ability_data):
+			continue
+		var ability_id = ability_data.ability_id
+		if ability_id == &"":
+			push_warning("Player: Equipment ability has empty ability_id, skipping")
+			continue
+		# 学习技能
+		ability_component.learn_ability(ability_data)
+		ability_ids.append(ability_id)
+
+		print("Player: Learned ability '%s' from equipment '%s'" % [ability_id, gameplay_equip.name])
+
+	# 存储技能ID列表（用于卸下时移除）
+	if not ability_ids.is_empty():
+		_equipment_abilities[equip_slot_name] = ability_ids
+
+## 移除装备技能
+## [param] equip_slot_name: StringName 装备槽名称
+func _remove_equipment_abilities(equip_slot_name: StringName) -> void:
+	if not _equipment_abilities.has(equip_slot_name):
+		return
+
+	if not is_instance_valid(ability_component):
+		# 如果技能组件已销毁，直接清除记录
+		_equipment_abilities.erase(equip_slot_name)
+		return
+
+	# 获取该装备槽的所有技能ID
+	var ability_ids = _equipment_abilities[equip_slot_name]
+	# 遗忘所有技能
+	for ability_id in ability_ids:
+		ability_component.forget_ability(ability_id)
+		print("Player: Forgot ability '%s' from equipment slot '%s'" % [ability_id, equip_slot_name])
+	
+	# 清除记录
+	_equipment_abilities.erase(equip_slot_name)
+
 ## 装备变化回调
 func _on_equip_changed(equip_slot_name: StringName, equip: Equip) -> void:
 	if not is_instance_valid(attribute_component):
@@ -364,12 +435,15 @@ func _on_equip_changed(equip_slot_name: StringName, equip: Equip) -> void:
 	if equip == null:
 		_remove_equipment_modifiers(equip_slot_name)
 		_remove_equipment_model(equip_slot_name)
+		_remove_equipment_abilities(equip_slot_name)
 		return
 		
 	# 如果是替换装备，先移除旧装备的属性修改器
 	_remove_equipment_modifiers(equip_slot_name)
 	_remove_equipment_model(equip_slot_name)
+	_remove_equipment_abilities(equip_slot_name)
 
 	# 应用新装备的属性修改器
 	_apply_equipment_modifiers(equip, equip_slot_name)
 	_apply_equipment_model(equip,equip_slot_name)
+	_apply_equipment_abilities(equip, equip_slot_name)
