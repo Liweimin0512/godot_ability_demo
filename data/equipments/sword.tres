@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="GameplayEquip" load_steps=4 format=3 uid="uid://cpfyqq8clupjn"]
+
+[ext_resource type="PackedScene" uid="uid://b3shyhx0f6rnf" path="res://prefabs/equipments/sword.tscn" id="1_1m4ui"]
+[ext_resource type="Texture2D" uid="uid://dvqtb641psw4n" path="res://assets/textures/sword.tres" id="1_e7a0r"]
+[ext_resource type="Script" uid="uid://dpqn2dm3acwv7" path="res://scripts/data/gameplay_equip.gd" id="2_e7a0r"]
+
+[resource]
+script = ExtResource("2_e7a0r")
+equip_model_scene = ExtResource("1_1m4ui")
+equip_type = 6
+name = "大剑"
+icon = ExtResource("1_e7a0r")
+description = "大剑"
+category = 2
+attributes = Dictionary[String, float]({
+"strength": 10.0
+})
+metadata/_custom_type_script = "uid://c05dhrbg17orj"

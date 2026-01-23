@@ -1,7 +1,6 @@
-[gd_scene load_steps=47 format=3 uid="uid://bi2kodwwmc3c3"]
+[gd_scene load_steps=46 format=3 uid="uid://bi2kodwwmc3c3"]
 
 [ext_resource type="PackedScene" uid="uid://ba48x3xtp8t5p" path="res://assets/models/characters/Barbarian.glb" id="1_qmeoj"]
-[ext_resource type="PackedScene" uid="uid://vad1i75l1sag" path="res://assets/models/accessories/axe_1handed.gltf" id="2_6rdvp"]
 [ext_resource type="Animation" uid="uid://cm5n4q215plkl" path="res://assets/animations/Death_A.res" id="3_elnuh"]
 [ext_resource type="Animation" uid="uid://dawfoiahm3glv" path="res://assets/animations/Death_A_Pose.res" id="4_yg1a5"]
 [ext_resource type="Animation" uid="uid://cmfdo0yledao0" path="res://assets/animations/Death_B.res" id="5_kj2nw"]
@@ -9,19 +8,19 @@
 [ext_resource type="Animation" uid="uid://bodpvb3io0u0d" path="res://assets/animations/Hit_A.res" id="7_egkcr"]
 [ext_resource type="Animation" uid="uid://cwx2u2ppfqe80" path="res://assets/animations/Hit_B.res" id="8_ch4t8"]
 [ext_resource type="Animation" uid="uid://cvywnwnhqo33m" path="res://assets/animations/Idle_A.res" id="9_un18h"]
-[ext_resource type="Animation" uid="uid://8ri1xej4kb14" path="res://assets/animations/Idle_B.res" id="10_4xx7g"]
+[ext_resource type="Animation" uid="uid://b2h8gy1qq0c6e" path="res://assets/animations/Idle_B.res" id="10_4xx7g"]
 [ext_resource type="Animation" uid="uid://3uk0awwm5qwh" path="res://assets/animations/Interact.res" id="11_hlux4"]
 [ext_resource type="Animation" uid="uid://botybfionhses" path="res://assets/animations/Melee_1H_Attack_Chop.res" id="12_ng1qt"]
 [ext_resource type="Animation" uid="uid://cjjj4qcnpy03r" path="res://assets/animations/PickUp.res" id="13_xynfo"]
 [ext_resource type="Animation" uid="uid://uf1ma5a53w8w" path="res://assets/animations/Running_A.res" id="14_4177w"]
-[ext_resource type="Animation" uid="uid://ci682lhjnmxjr" path="res://assets/animations/Running_B.res" id="15_e0otv"]
+[ext_resource type="Animation" uid="uid://cx7hoqjrl0dmo" path="res://assets/animations/Running_B.res" id="15_e0otv"]
 [ext_resource type="Animation" uid="uid://b7o56koomwwck" path="res://assets/animations/Spawn_Air.res" id="16_4f1a7"]
 [ext_resource type="Animation" uid="uid://finqfxrq44fh" path="res://assets/animations/Spawn_Ground.res" id="17_5p881"]
 [ext_resource type="Animation" uid="uid://bcmpwapcj3u6q" path="res://assets/animations/T-Pose.res" id="18_yo4kj"]
 [ext_resource type="Animation" uid="uid://brokscnbmyhkp" path="res://assets/animations/Throw.res" id="19_qe5wi"]
 [ext_resource type="Animation" uid="uid://im8enkdajk8j" path="res://assets/animations/Use_Item.res" id="20_ptu35"]
 [ext_resource type="Animation" uid="uid://bu7sgeqk2g5et" path="res://assets/animations/Walking_A.res" id="21_1xjhr"]
-[ext_resource type="Animation" uid="uid://em4l3w6o44i5" path="res://assets/animations/Walking_B.res" id="22_g0gdt"]
+[ext_resource type="Animation" uid="uid://74cqtrcygafe" path="res://assets/animations/Walking_B.res" id="22_g0gdt"]
 [ext_resource type="Animation" uid="uid://b62s8m87aejpa" path="res://assets/animations/Walking_C.res" id="23_2jma1"]
 [ext_resource type="Animation" uid="uid://cey2cetm71nig" path="res://assets/animations/Melee_1H_Attack_Jump_Chop.res" id="24_elnuh"]
 [ext_resource type="Animation" uid="uid://dl4ewwsjsa5bh" path="res://assets/animations/Ranged_Magic_Raise.res" id="25_ch4t8"]
@@ -173,9 +172,6 @@ bones/22/rotation = Quaternion(-8.934892e-05, 0.9202217, -0.3913977, 2.0290998e-
 transform = Transform3D(5.436756e-07, -0.14989425, -0.9887014, -0.99999917, -4.321337e-07, -1.740605e-07, -8.141726e-07, 0.9887015, -0.14989461, -0.50098795, 0.6509273, 0.10763028)
 bone_name = "handslot.r"
 bone_idx = 14
-
-[node name="axe_1handed2" parent="Rig_Medium/Skeleton3D/HandSlotAttachmentR" index="0" instance=ExtResource("2_6rdvp")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
 
 [node name="HandSlotAttachmentL" type="BoneAttachment3D" parent="Rig_Medium/Skeleton3D" index="8"]
 transform = Transform3D(5.3484914e-08, 0.26286304, 0.9648325, 0.99999917, -7.283063e-14, 3.6238131e-07, 3.630696e-07, 0.96483254, -0.26286307, 0.5077683, 0.63670504, -0.018521195)

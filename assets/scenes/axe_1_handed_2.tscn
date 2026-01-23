@@ -1,0 +1,5 @@
+[gd_scene load_steps=2 format=3 uid="uid://cmeggfms073gn"]
+
+[ext_resource type="PackedScene" uid="uid://vad1i75l1sag" path="res://assets/models/accessories/axe_1handed.gltf" id="1_ky80t"]
+
+[node name="axe_1handed2" instance=ExtResource("1_ky80t")]

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b3shyhx0f6rnf"]
+
+[ext_resource type="PackedScene" uid="uid://vad1i75l1sag" path="res://assets/models/accessories/axe_1handed.gltf" id="1_2tygl"]
+
+[node name="Sword" type="Node3D"]
+
+[node name="axe_1handed2" parent="." instance=ExtResource("1_2tygl")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)

@@ -1,6 +1,9 @@
 extends CharacterBody3D
 class_name Player
 
+const STAFF = preload("uid://c1bcskxvw3pvk")
+const SWORD = preload("uid://cpfyqq8clupjn")
+
 @export var player_data : PlayerData
 @export var _attachment_points : Dictionary[StringName, BoneAttachment3D]
 
@@ -15,6 +18,7 @@ class_name Player
 @onready var inventory_component: C_Inventory = $InventoryComponent
 @onready var vital_component: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
 @onready var ability_component: GameplayAbilityComponent = $GameplayAbilityComponent
+@onready var attribute_component: GameplayVitalAttributeComponent = $GameplayVitalAttributeComponent
 
 var animation_state_machine: AnimationNodeStateMachinePlayback
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -23,6 +27,10 @@ var attribute_points_manager: AttributePointsManager = AttributePointsManager.ne
 
 # 当前正在瞄准的技能
 var current_targeting_ability: GameplayAbilityInstance = null
+
+# 存储每个装备槽位的属性修改器（slot_id -> Array[GameplayAttributeModifier]）
+var _equipment_modifiers: Dictionary[StringName, Array] = {}
+var _equipment_models: Dictionary[StringName, Node3D]
 
 func _ready() -> void:
 	animation_state_machine = animation_tree.get("parameters/StateMachine/playback")
@@ -47,6 +55,11 @@ func _ready() -> void:
 	vital_component.initialize(player_data.attribute_sets, player_data.vitals)
 	ability_component.initialize(player_data.initial_abilities)
 
+	inventory_component.equip_changed.connect(_on_equip_changed)
+
+	inventory_component.add_item(STAFF.duplicate())
+	inventory_component.add_item(SWORD.duplicate())
+	
 	await get_tree().create_timer(2).timeout
 	ability_component.forget_ability(&"damage_reduction_shield_passive")
 
@@ -227,3 +240,136 @@ func _try_interact() -> void:
 
 func _get_facing_direction() -> Vector3:
 	return visuals.global_transform.basis * Vector3.FORWARD
+
+## 应用装备的属性修改器
+## [param] equip: Equip 装备实例（实际应为 GameplayEquip）
+## [param] equip_slot_name: StringName 装备槽名称
+func _apply_equipment_modifiers(equip: Equip, equip_slot_name: StringName) -> void:
+	if not is_instance_valid(equip) or not is_instance_valid(attribute_component):
+		push_error("Player: equip or attribute_component is not valid!")
+		return
+
+	# 获取装备的属性字典
+	var attributes = equip.attributes
+	if attributes.is_empty():
+		return
+		
+	# 存储该装备的所有修改器
+	var modifiers: Array[GameplayAttributeModifier] = []
+
+	# 遍历装备的所有属性，创建修改器
+	for attr_name in attributes.keys():
+		var attr_value = attributes[attr_name]
+		if attr_value == 0.0:
+			continue
+
+		# 创建属性修改器（使用 ADD 类型，直接加到基础值上）
+		var modifier := GameplayAttributeModifier.new()
+		modifier.attribute_id = StringName(attr_name)
+		modifier.value = attr_value
+		modifier.modifier_type = GameplayAttributeModifier.ModifierType.ADD
+		modifier.source_id = str(equip.get_instance_id())
+
+		# 检查属性是否存在
+		if not attribute_component.has_attribute(modifier.attribute_id):
+			push_warning("Player: Attribute '%s' not found in attribute_component, skipping equipment modifier" % attr_name)
+			continue
+
+		# 应用修改器
+		attribute_component.add_modifier(modifier)
+		modifiers.append(modifier)
+
+		print("Player: Applied equipment modifier - %s: +%.1f (from %s)" % [attr_name, attr_value, equip.name])
+
+	# 存储修改器（使用装备槽名称作为键，因为同一槽位只能有一个装备）
+	if not modifiers.is_empty():
+		_equipment_modifiers[equip_slot_name] = modifiers
+
+func _remove_equipment_modifiers(equip_slot_name: StringName) -> void:
+	if not _equipment_modifiers.has(equip_slot_name):
+		return
+
+	if not is_instance_valid(attribute_component):
+		# 如果属性组件已销毁，直接清除记录
+		_equipment_modifiers.erase(equip_slot_name)
+		return
+
+	# 获取该装备槽的所有修改器
+	var modifiers = _equipment_modifiers[equip_slot_name]
+
+	# 移除所有修改器
+	for modifier in modifiers:
+		if is_instance_valid(modifier):
+			attribute_component.remove_modifier(modifier)
+			print("Player: Removed equipment modifier - %s: %.1f" % [modifier.attribute_id, modifier.value])
+
+	# 清除记录
+	_equipment_modifiers.erase(equip_slot_name)
+
+## 应用装备模型
+## [param] equip: Equip 装备实例（实际应为 GameplayEquip）
+## [param] equip_slot_name: StringName 装备槽名称
+func _apply_equipment_model(equip: Equip, equip_slot_name: StringName) -> void:
+	# 检查是否为 GameplayEquip 实例（业务层装备类）
+	if not equip is GameplayEquip:
+		# 如果不是 GameplayEquip，说明没有装备模型配置，直接返回
+		return
+
+	var gameplay_equip = equip as GameplayEquip
+
+	# 获取装备的挂点名称（默认为 hand_right）
+	var attachment_point : StringName = gameplay_equip.attachment_point
+	if attachment_point.is_empty():
+		return
+
+	if not is_instance_valid(gameplay_equip) or not is_instance_valid(gameplay_equip.equip_model_scene):
+		return
+
+	# 根据挂点名称获取对应的 BoneAttachment3D 节点
+	var attachment_node: BoneAttachment3D = get_attachment_point(attachment_point)
+	if not is_instance_valid(attachment_node):
+		push_warning("Player: Attachment point '%s' not found for equipment '%s'" % [attachment_point, equip.name])
+		return
+
+	# 实例化装备模型
+	var model_instance = gameplay_equip.equip_model_scene.instantiate()
+	if not is_instance_valid(model_instance):
+		push_warning("Player: Failed to instantiate equipment model for '%s'" % gameplay_equip.name)
+		return
+
+	# 添加到挂点节点
+	attachment_node.add_child(model_instance)
+	_equipment_models[equip_slot_name] = model_instance
+
+	print("Player: Applied equipment model '%s' to attachment point '%s'" % [gameplay_equip.name, attachment_point])
+
+## 移除装备模型
+## [param] equip_slot_name: StringName 装备槽名称
+func _remove_equipment_model(equip_slot_name: StringName) -> void:
+	if not _equipment_models.has(equip_slot_name):
+		return
+	var model_instance = _equipment_models[equip_slot_name]
+	if is_instance_valid(model_instance):
+		model_instance.queue_free()
+		print("Player: Removed equipment model from slot '%s'" % equip_slot_name)
+	# 清除记录
+	_equipment_models.erase(equip_slot_name)
+
+## 装备变化回调
+func _on_equip_changed(equip_slot_name: StringName, equip: Equip) -> void:
+	if not is_instance_valid(attribute_component):
+		return
+
+	# 如果是卸下装备（equip 为 null），移除旧装备的属性修改器
+	if equip == null:
+		_remove_equipment_modifiers(equip_slot_name)
+		_remove_equipment_model(equip_slot_name)
+		return
+		
+	# 如果是替换装备，先移除旧装备的属性修改器
+	_remove_equipment_modifiers(equip_slot_name)
+	_remove_equipment_model(equip_slot_name)
+
+	# 应用新装备的属性修改器
+	_apply_equipment_modifiers(equip, equip_slot_name)
+	_apply_equipment_model(equip,equip_slot_name)

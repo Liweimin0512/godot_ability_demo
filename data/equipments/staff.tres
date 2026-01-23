@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="GameplayEquip" load_steps=4 format=3 uid="uid://c1bcskxvw3pvk"]
+
+[ext_resource type="Texture2D" uid="uid://k6r8v63tpupg" path="res://assets/textures/staff.tres" id="1_oopcx"]
+[ext_resource type="PackedScene" uid="uid://chlk6a6smdlup" path="res://prefabs/equipments/staff.tscn" id="1_p0gkd"]
+[ext_resource type="Script" uid="uid://dpqn2dm3acwv7" path="res://scripts/data/gameplay_equip.gd" id="2_oopcx"]
+
+[resource]
+script = ExtResource("2_oopcx")
+equip_model_scene = ExtResource("1_p0gkd")
+equip_type = 6
+name = "法杖"
+icon = ExtResource("1_oopcx")
+description = "法杖"
+category = 2
+attributes = Dictionary[String, float]({
+"intelligence": 10.0
+})
+metadata/_custom_type_script = "uid://c05dhrbg17orj"
