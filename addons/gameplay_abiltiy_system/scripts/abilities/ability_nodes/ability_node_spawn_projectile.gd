@@ -140,5 +140,7 @@ func _spawn_projectile(
 	projectile_base.instigator = instigator
 	projectile_base.target_reference = target_node
 	data.apply_to_projectile(projectile_base)
+	
+	projectile_base.set_source_context(context)
 
 	return projectile_base

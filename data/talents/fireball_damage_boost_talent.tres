@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TalentData" load_steps=7 format=3 uid="uid://c78sdvw0b40ud"]
+
+[ext_resource type="Script" uid="uid://v1w6sodsjfjb" path="res://scripts/talent/talent_attribute_modifier.gd" id="1_xjqns"]
+[ext_resource type="Script" uid="uid://ecfyslf3nvv6" path="res://scripts/talent/talent_effect_modifier.gd" id="2_jqqod"]
+[ext_resource type="Texture2D" uid="uid://ckarr4gl6dpbp" path="res://assets/textures/burn.tres" id="3_jqqod"]
+[ext_resource type="Resource" uid="uid://lu4jx0tghnpg" path="res://data/talents/fireball_damage_boost_modifier.tres" id="3_mtcuy"]
+[ext_resource type="Script" uid="uid://b8a286noieoi8" path="res://scripts/talent/talent_mechanic_modifier.gd" id="3_oj04r"]
+[ext_resource type="Script" uid="uid://uhxqu58736g5" path="res://scripts/talent/talent_data.gd" id="4_mtcuy"]
+
+[resource]
+script = ExtResource("4_mtcuy")
+talent_id = &"fireball_damage_boost"
+talent_name = "火球术伤害强化"
+description = "火球术伤害提升30%"
+icon = ExtResource("3_jqqod")
+effect_modifiers = Array[ExtResource("2_jqqod")]([ExtResource("3_mtcuy")])
+metadata/_custom_type_script = "uid://uhxqu58736g5"

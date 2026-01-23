@@ -228,15 +228,37 @@ func _remove_attribute_modifier(entity: Node, talent_id: StringName) -> void:
 ## [param] modifier: TalentEffectModifier 效果修改器
 ## [param] talent_id: StringName 天赋ID
 func _apply_effect_modifier(entity: Node, modifier: TalentEffectModifier, talent_id: StringName) -> void:
-	# 将在后续章节实现
-	pass
+	var ability_comp : GameplayAbilityComponent = GameplayAbilitySystem.get_component_by_interface(entity, "GameplayAbilityComponent")
+	if not is_instance_valid(ability_comp):
+		push_warning("TalentSystem: Entity does not have GameplayAbilityComponent")
+		return
+	# 检查是否影响所有技能（ability_id 为空）
+	if modifier.ability_id.is_empty():
+		# 影响所有技能：为每个技能实例添加 Feature
+		for ability_id in ability_comp.get_all_ability_ids():
+			_apply_effect_modifier_to_ability(ability_comp, ability_id, modifier, talent_id)
+	else:
+		# 只影响指定技能
+		_apply_effect_modifier_to_ability(ability_comp, modifier.ability_id, modifier, talent_id)
 
 ## 移除技能效果修改（占位，后续章节实现）
 ## [param] entity: Node 目标实体
 ## [param] talent_id: StringName 天赋ID
 func _remove_effect_modifier(entity: Node, talent_id: StringName) -> void:
-	# 将在后续章节实现
-	pass
+	var ability_comp : GameplayAbilityComponent = GameplayAbilitySystem.get_component_by_interface(entity, "GameplayAbilityComponent")
+	if not is_instance_valid(ability_comp):
+		push_warning("TalentSystem: Entity does not have GameplayAbilityComponent")
+		return
+
+	# 移除所有技能的效果修改 Feature
+	var feature_name = _get_feature_name(talent_id)
+	for ability_id in ability_comp.get_all_ability_ids():
+		var ability_instance : GameplayAbilityInstance = ability_comp.get_ability_instance(ability_id)
+		if is_instance_valid(ability_instance):
+			var ok := ability_instance.remove_feature(feature_name)
+			if not ok:
+				push_warning("TalentSystem: remove feature is not ok!")
+			print("TalentSystem: Removed effect modifiers for talent '%s' (ability: %s)" % [talent_id, ability_id])
 
 ## 应用技能机制修改（占位，后续章节实现）
 ## [param] entity: Node 目标实体
@@ -253,4 +275,36 @@ func _remove_mechanic_modifier(entity: Node, talent_id: StringName) -> void:
 	# 将在后续章节实现
 	pass
 	
-	
+## 为指定技能应用效果修改器
+## [param] ability_comp: GameplayAbilityComponent 技能组件
+## [param] ability_id: StringName 技能ID
+## [param] modifier: TalentEffectModifier 效果修改器
+## [param] talent_id: StringName 天赋ID
+func _apply_effect_modifier_to_ability(
+		ability_comp: GameplayAbilityComponent,
+		ability_id: StringName,
+		modifier: TalentEffectModifier,
+		talent_id: StringName
+	) -> void:
+	var ability_instance = ability_comp.get_ability_instance(ability_id)
+	if not is_instance_valid(ability_instance):
+		push_warning("TalentSystem: Ability instance '%s' not found" % ability_id)
+		return
+
+	# 获取或创建 Feature
+	var feature_name = _get_feature_name(talent_id)
+	var feature = ability_instance.get_feature(feature_name) as EffectModifierFeature
+
+	if not is_instance_valid(feature):
+		# 创建新 Feature
+		feature = EffectModifierFeature.new()
+		feature.effect_modifiers = [] as Array[TalentEffectModifier]
+		ability_instance.add_feature(feature_name, feature)
+
+	# 添加修改器到 Feature
+	if modifier not in feature.effect_modifiers:
+		feature.effect_modifiers.append(modifier)
+		print("TalentSystem: Applied effect modifier to ability '%s' (talent: %s)" % [ability_id, talent_id])
+
+func _get_feature_name(talent_id : StringName) -> StringName:
+	return "talent_effect_" + String(talent_id)

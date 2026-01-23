@@ -155,6 +155,13 @@ func add_feature(feature_name: String, feature: GameplayAbilityFeature) -> void:
 	_features[feature_name] = feature
 	feature.initialize(self)
 
+## 删除特性
+func remove_feature(feature_name : StringName) -> bool:
+	if _features.has(feature_name):
+		_features.erase(feature_name)
+		return true
+	return false
+
 ## 获取特性
 func get_feature(feature_name: String) -> GameplayAbilityFeature:
 	return _features.get(feature_name, null)

@@ -46,6 +46,8 @@ var velocity: Vector3 = Vector3.ZERO
 ## 穿透次数（由外部系统管理，投射物只提供访问接口）
 var pierce_count: int = 0
 var _timer: float = 0.0
+## 保存技能执行时候的原始context
+var _source_context: Dictionary = {}
 
 # ========== 信号系统 ==========
 ## 投射物撞击时触发
@@ -98,6 +100,10 @@ func initialize_velocity() -> void:
 	velocity = forward * speed
 	if speed <= 0.0:
 		push_warning("ProjectileBase: speed is %f, projectile may not move" % speed)
+
+## 设置原始 context（由 AbilityNodeSpawnProjectile 调用）
+func set_source_context(context: Dictionary) -> void:
+	_source_context = context.duplicate()
 
 ## 销毁投射物（公共方法，由外部系统调用）
 ## 投射物不自动销毁，必须由外部系统（如 ProjectileAbility）调用此方法
@@ -162,13 +168,13 @@ func _deliver_payload(target: Node, hit_position: Vector3, hit_direction: Vector
 		return
 	
 	# 准备上下文信息
-	var context = {
+	var context = _source_context.duplicate()
+	context.merge({
 		"hit_position": hit_position,
 		"hit_direction": hit_direction,
 		"projectile": self,
 		"input_target": target  # 直接命中的目标
-	}
-
+	})
 	# 应用状态（弹头）
 	# 注意：状态会应用到目标，不处理目标检测（Status 只应用到自己）
 	for status_data in payload_statuses:

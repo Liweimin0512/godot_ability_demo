@@ -16,7 +16,7 @@ func _init() -> void:
 		target_blocked_tags = [invulnerable_block_tag]
 
 func _apply(target: Node, instigator: Node, context: Dictionary) -> void:
-	damage_multiplier = context.get("damage_multiplier", damage_multiplier)
+	damage_multiplier *= context.get("damage_multiplier", 1)
 	context["damage_multiplier"] = damage_multiplier
 	damage_strategy = context.get("damage_strategy", damage_strategy)
 	
