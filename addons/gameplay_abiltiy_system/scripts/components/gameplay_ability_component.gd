@@ -248,6 +248,9 @@ func get_current_casting_ability() -> GameplayAbilityInstance:
 func get_all_ability_ids() -> Array:
 	return _learned_abilities.keys()
 
+func has_ability(ability_id: StringName) -> bool:
+	return _learned_abilities.has(ability_id)
+
 #region ========== 公共API - 交互与预览 ==========
 ## 请求使用技能（用户输入的入口）
 ## 根据配置决定是直接施法（智能施法/瞬发）还是进入预览模式

@@ -25,3 +25,5 @@ class_name TalentMechanicModifier
 @export var cast_time_multiplier: float = 1.0
 
 @export var payload_status_replacements: Dictionary[StringName, GameplayStatusData] = {}
+## 替换技能 { 旧技能的ID ： 新技能的配置数据 }
+@export var replace_abilities : Dictionary[StringName, GameplayAbilityDefinition] = {}

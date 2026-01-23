@@ -265,17 +265,19 @@ func _remove_effect_modifier(entity: Node, talent_id: StringName) -> void:
 ## [param] modifier: TalentMechanicModifier 机制修改器
 ## [param] talent_id: StringName 天赋ID
 func _apply_mechanic_modifier(entity: Node, modifier: TalentMechanicModifier, talent_id: StringName) -> void:
-	# 将在后续章节实现
 	if not modifier.payload_status_replacements.is_empty():
 		_apply_projectile_payload_replacement(entity, modifier.ability_id, modifier.payload_status_replacements, talent_id )
+	if not modifier.replace_abilities.is_empty():
+		for old_ability_id in modifier.replace_abilities:
+			var new_ability_data := modifier.replace_abilities[old_ability_id]
+			_replace_ability(entity, old_ability_id, new_ability_data, talent_id)
 
 ## 移除技能机制修改（占位，后续章节实现）
 ## [param] entity: Node 目标实体
 ## [param] talent_id: StringName 天赋ID
 func _remove_mechanic_modifier(entity: Node, talent_id: StringName) -> void:
-	# 将在后续章节实现
-	pass
-	
+	_restore_ability(entity, talent_id) 
+
 func _apply_projectile_payload_replacement(
 		entity: Node,
 		ability_id: StringName,
@@ -311,6 +313,93 @@ func _apply_projectile_payload_replacement(
 		talent_id,
 		feature.payload_status_replacements.size()
 	])
+
+## 替换技能
+## [param] entity: Node 目标实体
+## [param] old_ability_id: StringName 旧技能ID
+## [param] new_ability_definition: GameplayAbilityDefinition 新技能定义
+## [param] talent_id: StringName 天赋ID
+func _replace_ability(
+		entity: Node,
+		old_ability_id: StringName,
+		new_ability_definition: GameplayAbilityDefinition,
+		talent_id: StringName
+	) -> void:
+	var ability_comp : GameplayAbilityComponent = GameplayAbilitySystem.get_component_by_interface(entity, "GameplayAbilityComponent")
+	if not is_instance_valid(ability_comp):
+		push_warning("TalentSystem: Entity does not have GameplayAbilityComponent")
+		return
+	# 检查旧技能是否存在
+	if not ability_comp.has_ability(old_ability_id):
+		push_warning("TalentSystem: Old ability '%s' not found" % old_ability_id)
+		return
+	# 检查新技能定义是否有效
+	if not is_instance_valid(new_ability_definition):
+		push_error("TalentSystem: New ability definition is not valid")
+		return
+	
+	# 保存旧技能定义（用于恢复）
+	var old_ability_instance = ability_comp.get_ability_instance(old_ability_id)
+	var old_ability_definition = old_ability_instance.get_definition()
+
+	# 存储替换信息（用于恢复）
+	var entity_id = entity.get_instance_id()
+	if not _entity_modifiers.has(entity_id):
+		_entity_modifiers[entity_id] = {}
+	if not _entity_modifiers[entity_id].has(talent_id):
+		_entity_modifiers[entity_id][talent_id] = {}
+	_entity_modifiers[entity_id][talent_id]["ability_replacement"] = {
+		"old_ability_id": old_ability_id,
+		"old_ability_definition": old_ability_definition
+	}
+
+	# 遗忘旧技能
+	ability_comp.forget_ability(old_ability_id)
+
+	# 学习新技能
+	# 将新技能实例存储到旧技能ID的位置
+	new_ability_definition.ability_id = old_ability_id
+	ability_comp.learn_ability(new_ability_definition)
+
+	print("TalentSystem: Replaced ability '%s' with '%s' (talent: %s)" % [
+		old_ability_id,
+		new_ability_definition.ability_id,
+		talent_id
+	])
+
+## 恢复技能
+## [param] entity: Node 目标实体
+## [param] talent_id: StringName 天赋ID
+func _restore_ability(entity: Node, talent_id: StringName) -> void:
+	var entity_id = entity.get_instance_id()
+	if not _entity_modifiers.has(entity_id):
+		return
+	if not _entity_modifiers[entity_id].has(talent_id):
+		return
+	if not _entity_modifiers[entity_id][talent_id].has("ability_replacement"):
+		return
+
+	var replacement_info = _entity_modifiers[entity_id][talent_id]["ability_replacement"]
+	var old_ability_id = replacement_info.get("old_ability_id", &"")
+	var old_ability_definition = replacement_info.get("old_ability_definition", null)
+
+	if old_ability_id.is_empty() or not is_instance_valid(old_ability_definition):
+		return
+
+	var ability_comp = GameplayAbilitySystem.get_component_by_interface(entity, "GameplayAbilityComponent")
+	if not is_instance_valid(ability_comp):
+		return
+
+	# 遗忘新技能（使用旧技能ID存储的）
+	if ability_comp.has_ability(old_ability_id):
+		ability_comp.forget_ability(old_ability_id)
+
+	# 恢复旧技能
+	ability_comp.learn_ability(old_ability_definition)
+
+	# 清理替换信息
+	_entity_modifiers[entity_id][talent_id].erase("ability_replacement")
+	print("TalentSystem: Restored ability '%s' (talent: %s)" % [old_ability_id, talent_id])
 
 ## 为指定技能应用效果修改器
 ## [param] ability_comp: GameplayAbilityComponent 技能组件

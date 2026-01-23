@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="TalentMechanicModifier" load_steps=5 format=3 uid="uid://dosgajxkqe850"]
+
+[ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="1_rwh8b"]
+[ext_resource type="Script" uid="uid://bm4h231fb21pv" path="res://addons/gameplay_abiltiy_system/scripts/abilities/gameplay_ability_definition.gd" id="2_erahp"]
+[ext_resource type="Resource" uid="uid://5cjlth81omq3" path="res://data/abilities/combo_attack.tres" id="3_erahp"]
+[ext_resource type="Script" uid="uid://b8a286noieoi8" path="res://scripts/talent/talent_mechanic_modifier.gd" id="3_rqhx4"]
+
+[resource]
+script = ExtResource("3_rqhx4")
+ability_id = &"attack"
+replace_abilities = Dictionary[StringName, ExtResource("2_erahp")]({
+&"attack": ExtResource("3_erahp")
+})
+metadata/_custom_type_script = "uid://b8a286noieoi8"
