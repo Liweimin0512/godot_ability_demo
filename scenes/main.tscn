@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://30orglekea3b"]
+[gd_scene load_steps=18 format=3 uid="uid://30orglekea3b"]
 
 [ext_resource type="PackedScene" uid="uid://0dbkas4m50et" path="res://scenes/room_lobby.tscn" id="1_jyhfs"]
 [ext_resource type="Script" uid="uid://ctchlggjlcgm8" path="res://scenes/main.gd" id="1_tefeu"]
@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://ckolr7skejo8m" path="res://addons/gameplay_abiltiy_system/ui/status_debug_panel.tscn" id="10_ya4ey"]
 [ext_resource type="PackedScene" uid="uid://bxlievegev5m1" path="res://addons/gameplay_abiltiy_system/ui/ability_bar.tscn" id="11_trceg"]
 [ext_resource type="PackedScene" uid="uid://cefhe6w0nwjsu" path="res://addons/gameplay_abiltiy_system/ui/bt_debug_panel.tscn" id="12_eb6dy"]
+[ext_resource type="Script" uid="uid://btwpr5rgjg0vk" path="res://scripts/tests/test_talent_system.gd" id="14_a8y0u"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ubp1v"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -45,6 +46,8 @@ transform = Transform3D(1, 0, 0, 0, 0.17364822, 0.9848077, 0, -0.9848077, 0.1736
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.606604, 0.09957409, 5.87055)
 _attachment_points = {
 &"body": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/ChestAttachment"),
+&"hand_l": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/HandSlotAttachmentL"),
+&"hand_r": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/HandSlotAttachmentR"),
 &"head": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/HeadAttachment"),
 &"root": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/RootAttachment")
 }
@@ -131,3 +134,6 @@ offset_bottom = 366.0
 grow_horizontal = 1
 
 [node name="BtDebugPanel" parent="." instance=ExtResource("12_eb6dy")]
+
+[node name="Node" type="Node" parent="."]
+script = ExtResource("14_a8y0u")

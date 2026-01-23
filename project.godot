@@ -25,6 +25,7 @@ GameplayCueManager="*res://addons/gameplay_abiltiy_system/scripts/singletons/gam
 Panku="*res://addons/panku_console/console.tscn"
 ConsoleCommands="*res://scripts/singletons/console_commands.gd"
 DebugDraw="*res://addons/zylann.debug_draw/debug_draw.gd"
+TalentSystem="*res://scripts/talent/talent_system.gd"
 
 [debug_draw_3d]
 
