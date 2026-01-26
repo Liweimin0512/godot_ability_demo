@@ -10,6 +10,11 @@ const TRANSITION_TIME = 1.5
 @onready var bt_debug_panel: BTDebugPanel = $BtDebugPanel
 @onready var ability_bar: AbilityBar = $UILayer/HUD/AbilityBar
 
+func _enter_tree() -> void:
+	# 注册标签系统
+	var tag_count := TagManager.register_tags_from_directory("res://data/tags/")
+	print("Registered %d tags" % tag_count)
+
 func _ready() -> void:
 	# 初始化：游戏开始时，把摄像机瞬间定格在第一个房间
 	var start_room = $RoomLobby
@@ -25,10 +30,6 @@ func _ready() -> void:
 	var arpg_strategy = ARPGDamageLogic.new()
 	if is_instance_valid(arpg_strategy):
 		DamageCalculator.set_strategy(arpg_strategy)
-	
-	# 注册标签系统
-	var tag_count := TagManager.register_tags_from_directory("res://data/tags/")
-	print("Registered %d tags" % tag_count)
 
 	ability_bar.setup(ability_component)
 

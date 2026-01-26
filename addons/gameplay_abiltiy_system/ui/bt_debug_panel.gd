@@ -30,7 +30,6 @@ func _ready() -> void:
 	refresh_button.pressed.connect(_on_refresh_pressed)
 	clear_history_button.pressed.connect(_on_clear_history_pressed)
 
-
 func _process(delta: float) -> void:
 	if not visible:
 		return

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GameplayTag" load_steps=2 format=3 uid="uid://bdreppbahpjid"]
+
+[ext_resource type="Script" uid="uid://0287xxc5l2rf" path="res://addons/gameplay_abiltiy_system/scripts/tags/gameplay_tag.gd" id="1_uru7m"]
+
+[resource]
+script = ExtResource("1_uru7m")
+id = &"defense.shield"
+display_name = "护盾"
+description = ""
+parent_tag_id = &"status.defense"
+metadata/_custom_type_script = "uid://0287xxc5l2rf"

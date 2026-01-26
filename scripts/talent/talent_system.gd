@@ -254,10 +254,10 @@ func _remove_effect_modifier(entity: Node, talent_id: StringName) -> void:
 	var feature_name = _get_feature_name(talent_id)
 	for ability_id in ability_comp.get_all_ability_ids():
 		var ability_instance : GameplayAbilityInstance = ability_comp.get_ability_instance(ability_id)
-		if is_instance_valid(ability_instance):
+		if is_instance_valid(ability_instance) and ability_instance.has_feature(feature_name):
 			var ok := ability_instance.remove_feature(feature_name)
 			if not ok:
-				push_warning("TalentSystem: remove feature is not ok!")
+				push_warning("TalentSystem: remove %s feature is not ok!" % feature_name)
 			print("TalentSystem: Removed effect modifiers for talent '%s' (ability: %s)" % [talent_id, ability_id])
 
 ## 应用技能机制修改（占位，后续章节实现）

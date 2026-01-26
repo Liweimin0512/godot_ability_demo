@@ -14,6 +14,29 @@
 
 [resource]
 script = ExtResource("2_y0gq1")
+attribute_mappings = Dictionary[StringName, Dictionary]({
+&"attack_speed": {
+&"agility": 0.01
+},
+&"crit_rate": {
+&"agility": 0.005
+},
+&"defense": {
+&"strength": 0.2,
+&"vitality": 0.5
+},
+&"max_health": {
+&"strength": 2.0,
+&"vitality": 10.0
+},
+&"max_mana": {
+&"intelligence": 10.0
+},
+&"phy_attack": {
+&"agility": 0.5,
+&"strength": 2.0
+}
+})
 attributes = Dictionary[ExtResource("1_paqsv"), float]({
 ExtResource("2_5p0ev"): 0.0,
 ExtResource("3_j57ob"): 0.05,

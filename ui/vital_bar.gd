@@ -13,7 +13,6 @@ class_name VitalBar
 var vital_id: StringName
 var _vital_component: GameplayVitalAttributeComponent
 
-
 ## 初始化 Vital 条
 ## [param] comp: GameplayVitalAttributeComponent Vital 属性组件
 ## [param] id: StringName Vital ID（如 "health", "mana"）

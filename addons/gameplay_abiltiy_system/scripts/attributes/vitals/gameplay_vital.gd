@@ -74,7 +74,10 @@ func _update_cached_max() -> void:
 	if not is_instance_valid(_owner_comp):
 		push_error("Vital: _owner component is not valid!")
 		return
+	var old_max = _cached_max
 	_cached_max = _owner_comp.get_value(max_value_attribute)
+	if old_max != _cached_max:
+		value_changed.emit(current_value, _cached_max, get_percent(), false)
 
 func _modify_value(amount: float, is_regen: bool = false) -> void:
 	_update_cached_max()

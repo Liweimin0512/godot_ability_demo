@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GameplayTag" load_steps=2 format=3 uid="uid://b3lvsl5kcanvf"]
+
+[ext_resource type="Script" uid="uid://0287xxc5l2rf" path="res://addons/gameplay_abiltiy_system/scripts/tags/gameplay_tag.gd" id="1_a5003"]
+
+[resource]
+script = ExtResource("1_a5003")
+id = &"status.buff"
+display_name = "增益效果"
+description = "这是一个增益效果"
+parent_tag_id = &"status"
+metadata/_custom_type_script = "uid://0287xxc5l2rf"

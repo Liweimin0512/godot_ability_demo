@@ -32,8 +32,8 @@ func _init(owner: Node, definition: GameplayAbilityDefinition) -> void:
 	_blackboard.set_var("ability_instance", self)
 	if is_instance_valid(_definition.execution_tree):
 		_bt_instance = BTInstance.new(_owner, _definition.execution_tree, _blackboard)
-	else:
-		push_warning("AbilityInstance: execution_tree is not valid!")
+	#else:
+		#push_warning("AbilityInstance: execution_tree is not valid!")
 
 func get_definition() -> GameplayAbilityDefinition:
 	return _definition
