@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://dxsvj51ctgg3g" path="res://icon.svg" id="1_32sbw"]
 [ext_resource type="Script" uid="uid://dw130lxt8xr5v" path="res://addons/gameplay_abiltiy_system/ui/status_icon.gd" id="1_rr66h"]
-[ext_resource type="Theme" uid="uid://carbioq75qbhu" path="res://assets/theme/theme_main.tres" id="2_wrggy"]
+[ext_resource type="Theme" uid="uid://bxmd4wteaxnnk" path="res://addons/gameplay_abiltiy_system/assets/theme/theme_default.tres" id="3_rr66h"]
 
 [node name="StatusIcon" type="MarginContainer"]
 anchors_preset = 8
@@ -33,5 +33,5 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
 size_flags_vertical = 8
-theme = ExtResource("2_wrggy")
+theme = ExtResource("3_rr66h")
 text = "99"
