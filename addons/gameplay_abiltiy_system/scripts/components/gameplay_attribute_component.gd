@@ -9,8 +9,13 @@ class_name GameplayAttributeComponent
 # ID -> Instance（运行时实例）
 var _attributes: Dictionary[StringName, GameplayAttributeInstance] = {}
 
+## 当前等级（用于计算 ScalableValue）
+var current_level: int = 1 : set = _set_current_level
+
 # 信号：当属性值发生变化时发出
 signal attribute_value_changed(id: StringName, new_val: float)
+## 等级变化信号
+signal level_changed(old_level: int, new_level: int)
 
 ## 初始化属性组件
 ## [param] sets: Array[GameplayAttributeSet] 属性集数组
@@ -18,13 +23,16 @@ func initialize(sets: Array[GameplayAttributeSet] = []) -> void:
 	if not sets.is_empty():
 		_active_sets = sets.duplicate(true)
 	
-	# 1. 先注册所有属性 (此时属性实例尚未创建，无法互相读取)
+	# 遍历所有属性集，批量创建实例
 	for attr_set in _active_sets:
 		var new_instances : Dictionary[StringName, GameplayAttributeInstance] = attr_set.instantiate_attributes()
 		for id in new_instances:
+			var instance = new_instances[id]
+			# 设置实例的等级（用于 ScalableValue 计算）
+			instance.current_level = current_level
 			_register_instance(id, new_instances[id])
 
-	# 2. 再处理依赖关系 (此时所有属性都已存在，可以互相读取)
+	# 再处理依赖关系 (此时所有属性都已存在，可以互相读取)
 	for atr_set in _active_sets:
 		atr_set.resolve_dependencies(self)
 
@@ -84,6 +92,16 @@ func remove_modifiers_by_source(source_id: StringName) -> void:
 		if is_instance_valid(instance):
 			instance.remove_modifiers_by_source(source_id)
 
+## 获取当前等级
+## [return] int 当前等级
+func get_level() -> int:
+	return current_level
+
+## 设置等级（公共接口）
+## [param] level: int 新等级
+func set_level(level: int) -> void:
+	_set_current_level(level)
+
 ## 注册属性实例（内部方法）
 ## [param] id: StringName 属性ID
 ## [param] instance: GameplayAttributeInstance 属性实例
@@ -107,3 +125,16 @@ func _handle_dependency(attr_id: StringName, new_val: float) -> void:
 	# 通知所有 Set，看看有没有人关心这个属性的变化
 	for attribute_set in _active_sets:
 		attribute_set.on_attribute_changed(self, attr_id, new_val)
+
+## 设置等级（会更新所有使用 ScalableValue 的属性）
+func _set_current_level(level: int) -> void:
+	if current_level == level: 
+		return
+	var old_level = current_level
+	current_level = max(1, level)
+
+	# 更新所有使用 ScalableValue 的属性实例
+	for instance in _attributes.values():
+		if is_instance_valid(instance):
+			instance.current_level = current_level
+	level_changed.emit(old_level, current_level)

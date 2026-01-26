@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="GameplayAttribute" load_steps=2 format=3 uid="uid://ddi8png5ca4f7"]
+[gd_resource type="Resource" script_class="GameplayAttribute" load_steps=3 format=3 uid="uid://ddi8png5ca4f7"]
 
 [ext_resource type="Script" uid="uid://dj0iwc88r8noi" path="res://addons/gameplay_abiltiy_system/scripts/attributes/gameplay_attribute.gd" id="1_i6jd6"]
+[ext_resource type="Resource" uid="uid://clkkqm1r7eeil" path="res://data/attributes/attack_growth_scalable.tres" id="1_nnnwj"]
 
 [resource]
 script = ExtResource("1_i6jd6")
@@ -8,4 +9,5 @@ attribute_id = &"phy_attack"
 attribute_display_name = "物理攻击"
 min_value = 0.0
 max_value = 999.0
+scalable_value = ExtResource("1_nnnwj")
 metadata/_custom_type_script = "uid://dj0iwc88r8noi"

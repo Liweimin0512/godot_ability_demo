@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ScalableValue" load_steps=3 format=3 uid="uid://clkkqm1r7eeil"]
+
+[ext_resource type="Curve" uid="uid://demwg6xw3lr1y" path="res://data/attributes/attack_growth_curve.tres" id="1_ovdbn"]
+[ext_resource type="Script" uid="uid://dd5tuhga1jg51" path="res://addons/gameplay_abiltiy_system/scripts/utilties/scalable_value.gd" id="2_6ji5x"]
+
+[resource]
+script = ExtResource("2_6ji5x")
+use_level_scaling = true
+growth_curve = ExtResource("1_ovdbn")
+metadata/_custom_type_script = "uid://dd5tuhga1jg51"

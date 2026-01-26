@@ -68,6 +68,8 @@ func _ready() -> void:
 	await get_tree().create_timer(2).timeout
 	ability_component.forget_ability(&"damage_reduction_shield_passive")
 
+	_test_level_scaling()
+
 func _process(_delta):
 	# 实时更新指示器位置
 	var targeting_ability = ability_component.get_current_targeting_ability()
@@ -447,3 +449,36 @@ func _on_equip_changed(equip_slot_name: StringName, equip: Equip) -> void:
 	_apply_equipment_modifiers(equip, equip_slot_name)
 	_apply_equipment_model(equip,equip_slot_name)
 	_apply_equipment_abilities(equip, equip_slot_name)
+
+func _test_level_scaling() -> void:
+	print("\n=== Testing Level Scaling ===")
+
+	# 1. 查看初始状态（等级 1）
+	print("Level 1:")
+	print("  Attack: %.1f" % attribute_component.get_value(&"phy_attack"))
+
+	# 2. 升级到等级 10
+	attribute_component.set_level(10)
+	await get_tree().process_frame
+
+	print("Level 10:")
+	print("  Attack: %.1f" % attribute_component.get_value(&"phy_attack"))
+
+	# 3. 升级到等级 20
+	attribute_component.set_level(20)
+	await get_tree().process_frame
+	
+	print("Level 20:")
+	print("  Attack: %.1f" % attribute_component.get_value(&"phy_attack"))
+
+	# 验证：攻击力应该随等级增长
+	var attack_lv1 = attribute_component.get_value(&"phy_attack")
+	attribute_component.set_level(1)
+	await get_tree().process_frame
+	var attack_lv1_again = attribute_component.get_value(&"phy_attack")
+
+	print("\nLevel 1 Attack: %.1f" % attack_lv1_again)
+	print("Level 20 Attack: %.1f" % attack_lv1)
+	assert(attack_lv1 > attack_lv1_again, "Attack should increase with level")
+
+	print("✓ Test passed: Level scaling works correctly")

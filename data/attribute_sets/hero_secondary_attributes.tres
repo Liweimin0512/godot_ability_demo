@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SecondaryAttributeSet" load_steps=11 format=3 uid="uid://c6m5kfhl1aid0"]
+[gd_resource type="Resource" script_class="SecondaryAttributeSet" load_steps=12 format=3 uid="uid://c6m5kfhl1aid0"]
 
 [ext_resource type="Script" uid="uid://dj0iwc88r8noi" path="res://addons/gameplay_abiltiy_system/scripts/attributes/gameplay_attribute.gd" id="1_paqsv"]
 [ext_resource type="Resource" uid="uid://dfptvmbcw16mx" path="res://data/attributes/attack_speed.tres" id="2_5p0ev"]
@@ -10,6 +10,7 @@
 [ext_resource type="Resource" uid="uid://bg7ww1s6bitwu" path="res://data/attributes/health_regen.tres" id="7_dlfnk"]
 [ext_resource type="Resource" uid="uid://cxkvi4dqbu0qq" path="res://data/attributes/max_mana.tres" id="8_o7xoh"]
 [ext_resource type="Resource" uid="uid://crupun7k0dfq6" path="res://data/attributes/mana_regen.tres" id="9_7l6r6"]
+[ext_resource type="Script" uid="uid://dd5tuhga1jg51" path="res://addons/gameplay_abiltiy_system/scripts/utilties/scalable_value.gd" id="10_alkvf"]
 
 [resource]
 script = ExtResource("2_y0gq1")

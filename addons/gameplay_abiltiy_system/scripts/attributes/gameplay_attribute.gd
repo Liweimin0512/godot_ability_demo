@@ -14,5 +14,7 @@ var attribute_description : String = &"" 				## 属性描述
 @export var is_hidden: bool = false 					## 属性是否隐藏（不在UI显示）
 @export var is_percentage: bool = false 				## 是否百分比显示
 
+@export var scalable_value: ScalableValue = null		## 可扩展属性
+
 func get_id() -> StringName:
 	return attribute_id
