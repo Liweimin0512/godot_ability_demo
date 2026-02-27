@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GameplayCue" load_steps=8 format=3 uid="uid://bh40t4m117cg5"]
+[gd_resource type="Resource" script_class="GameplayCue" format=3 uid="uid://bh40t4m117cg5"]
 
 [ext_resource type="Script" uid="uid://6mcxpdojhh7u" path="res://addons/gameplay_abiltiy_system/scripts/cues/gameplay_cue.gd" id="1_jxbyf"]
 [ext_resource type="Script" uid="uid://cyc24nfkwkmo1" path="res://addons/gameplay_abiltiy_system/scripts/cues/gameplay_cue_base.gd" id="1_l43fm"]

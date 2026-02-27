@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ProjectileData" load_steps=11 format=3 uid="uid://dx7bus74iqqnh"]
+[gd_resource type="Resource" script_class="ProjectileData" format=3 uid="uid://dx7bus74iqqnh"]
 
 [ext_resource type="Script" uid="uid://8u46anns2vhm" path="res://addons/gameplay_abiltiy_system/scripts/status/gameplay_status_data.gd" id="1_0hkfh"]
 [ext_resource type="Script" uid="uid://b5e67ksqgqmco" path="res://addons/gameplay_abiltiy_system/scripts/entites/projectile_data.gd" id="2_3lcmv"]

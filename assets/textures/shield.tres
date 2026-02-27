@@ -1,4 +1,4 @@
-[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://bnsp6bkgvua6g"]
+[gd_resource type="AtlasTexture" format=3 uid="uid://bnsp6bkgvua6g"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_12y23"]
 load_path = "res://.godot/imported/icons.png-3a2c064d0bba3f942d69c3204833c3d7.ctex"

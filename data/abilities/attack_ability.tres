@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ActiveAbilityDefinition" load_steps=14 format=3 uid="uid://d2n1yron43w3d"]
+[gd_resource type="Resource" script_class="ActiveAbilityDefinition" format=3 uid="uid://d2n1yron43w3d"]
 
 [ext_resource type="Script" uid="uid://bi6pufwhna1aj" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/active_ability_definition.gd" id="1_058bi"]
 [ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_nk0i2"]

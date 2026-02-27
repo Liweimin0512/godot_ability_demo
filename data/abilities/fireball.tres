@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ProjectileAbilityDefinition" load_steps=14 format=3 uid="uid://dkoimtf32ofys"]
+[gd_resource type="Resource" script_class="ProjectileAbilityDefinition" format=3 uid="uid://dkoimtf32ofys"]
 
 [ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_xwpew"]
 [ext_resource type="Script" uid="uid://cerfta25urv6h" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/vital_cost.gd" id="2_6jlwg"]
@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://bdhc2vg7g6673" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/projectile_ability_definition.gd" id="4_6jlwg"]
 [ext_resource type="Resource" uid="uid://dx7bus74iqqnh" path="res://data/projectiles/projectile_data_fireball.tres" id="4_dyx2a"]
 [ext_resource type="Texture2D" uid="uid://ckarr4gl6dpbp" path="res://assets/textures/burn.tres" id="5_0cy71"]
-[ext_resource type="Script" uid="uid://c7btvuqowhshg" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/strategy_cursor_change.gd" id="6_0cy71"]
+[ext_resource type="Script" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/strategy_cursor_change.gd" id="6_0cy71"]
 [ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="9_5m1cr"]
 [ext_resource type="Script" uid="uid://bf12d8mu7p2bi" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/ground_targeting_strategy.gd" id="10_07wpr"]
 

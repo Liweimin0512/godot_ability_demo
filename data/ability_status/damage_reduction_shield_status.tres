@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GameplayStatusData" load_steps=12 format=3 uid="uid://bn5vcaouea28f"]
+[gd_resource type="Resource" script_class="GameplayStatusData" format=3 uid="uid://bn5vcaouea28f"]
 
 [ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="1_r1j4p"]
 [ext_resource type="Script" uid="uid://ctnmjf6pyjfeu" path="res://addons/gameplay_abiltiy_system/scripts/status/features/status_feature.gd" id="2_0e8uw"]

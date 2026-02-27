@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="ProjectileAbilityDefinition" load_steps=9 format=3 uid="uid://cdjx1sljbwhs5"]
+[gd_resource type="Resource" script_class="ProjectileAbilityDefinition" format=3 uid="uid://cdjx1sljbwhs5"]
 
 [ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_s1van"]
 [ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="2_fv3p7"]
 [ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="3_3rga2"]
 [ext_resource type="Texture2D" uid="uid://7xg4j0gg0q1u" path="res://assets/textures/arcane_missile.tres" id="4_aycjk"]
 [ext_resource type="Script" uid="uid://bdhc2vg7g6673" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/projectile_ability_definition.gd" id="4_b67v4"]
-[ext_resource type="Script" uid="uid://c7btvuqowhshg" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/strategy_cursor_change.gd" id="5_5s6f1"]
+[ext_resource type="Script" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/strategy_cursor_change.gd" id="5_5s6f1"]
 [ext_resource type="Resource" uid="uid://ctfv4lfbnbkyo" path="res://data/projectiles/projectile_data_arcane.tres" id="5_b67v4"]
 
 [sub_resource type="Resource" id="Resource_7b1i3"]

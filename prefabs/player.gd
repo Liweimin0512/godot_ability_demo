@@ -25,9 +25,6 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var attribute_points_manager: AttributePointsManager = AttributePointsManager.new(10)
 
-# 当前正在瞄准的技能
-var current_targeting_ability: GameplayAbilityInstance = null
-
 # 存储每个装备槽位的属性修改器（slot_id -> Array[GameplayAttributeModifier]）
 var _equipment_modifiers: Dictionary[StringName, Array] = {}
 var _equipment_models: Dictionary[StringName, Node3D]
@@ -70,14 +67,11 @@ func _ready() -> void:
 
 	_test_level_scaling()
 
-func _process(_delta):
+func _process(_delta) -> void:
 	# 实时更新指示器位置
-	var targeting_ability = ability_component.get_current_targeting_ability()
-	if is_instance_valid(targeting_ability):
-		var mouse_pos = get_mouse_world_pos()
-		targeting_ability.update_targeting(mouse_pos)
-		# 同步本地变量（用于其他逻辑）
-		current_targeting_ability = targeting_ability
+	ability_component.update_targeting(_delta, {
+		"mouse_position": get_mouse_world_pos()
+	})
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
@@ -127,8 +121,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	#elif event.is_action_pressed("attack"):
 		#_play_anim("attack")
 
-	elif event.is_action_pressed("ui_accept"):
-		_test_damage()
+	# elif event.is_action_pressed("ui_accept"):
+	# 	_test_damage()
 	
 	# 过滤非按下和重复事件
 	if not event.is_pressed() or event.is_echo():
@@ -137,28 +131,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	if ability_component.has_targeting_ability():
 		# 2. 鼠标左键：确认施法
 		if event.is_action_pressed("mouse_left"):
-			var targeting_ability = ability_component.get_current_targeting_ability()
-			if is_instance_valid(targeting_ability):
-				var mouse_pos = get_mouse_world_pos()
-				# 确认预览，获取 Context 数据 (包含 position/direction)
-				var context = targeting_ability.confirm_targeting(mouse_pos)
-				context["targets"] = get_tree().get_nodes_in_group("Enemies")
-				# 正式激活技能
-				ability_component.try_activate_ability(
-					targeting_ability.get_definition().ability_id, 
-					context
-				)
-				# 清空当前预览技能（Component 内部会处理）
-				current_targeting_ability = null
+			# var mouse_pos = get_mouse_world_pos()
+			# 确认预览，获取 Context 数据 (包含 position/direction)
+			var context = ability_component.confirm_targeting()
+			context["targets"] = get_tree().get_nodes_in_group("Enemies")
+			# var ability_id = ability_component.get_current_targeting_ability().get_definition().ability_id
+			# 正式激活技能
+			ability_component.try_activate_targeting_ability()
 			get_viewport().set_input_as_handled() # 阻止点击移动
 
 		# 3. 鼠标右键：取消施法
 		if event.is_action_pressed("mouse_right"):
-			var targeting_ability = ability_component.get_current_targeting_ability()
-			if is_instance_valid(targeting_ability):
-				ability_component.cancel_ability_preview()
-				current_targeting_ability = null
-				get_viewport().set_input_as_handled()
+			ability_component.cancel_targeting()
+			get_viewport().set_input_as_handled()
 
 	else:
 		# 获取所有已学会的技能，检查输入匹配

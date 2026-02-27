@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ToggleAbilityDefinition" load_steps=13 format=3 uid="uid://h0khiha2ln3l"]
+[gd_resource type="Resource" script_class="ToggleAbilityDefinition" format=3 uid="uid://h0khiha2ln3l"]
 
 [ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_c4y04"]
 [ext_resource type="Script" uid="uid://cm0x3pewlrveo" path="res://addons/gameplay_abiltiy_system/scripts/abilities/features/gameplay_ability_feature.gd" id="2_60dx6"]

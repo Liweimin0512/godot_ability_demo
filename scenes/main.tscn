@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://30orglekea3b"]
+[gd_scene format=3 uid="uid://30orglekea3b"]
 
 [ext_resource type="PackedScene" uid="uid://0dbkas4m50et" path="res://scenes/room_lobby.tscn" id="1_jyhfs"]
 [ext_resource type="Script" uid="uid://ctchlggjlcgm8" path="res://scenes/main.gd" id="1_tefeu"]
@@ -31,18 +31,18 @@ glow_enabled = true
 glow_strength = 0.8
 glow_bloom = 0.2
 
-[node name="Main" type="Node3D"]
+[node name="Main" type="Node3D" unique_id=1837222412]
 script = ExtResource("1_tefeu")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=646153933]
 environment = SubResource("Environment_fpimf")
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=610348018]
 transform = Transform3D(1, 0, 0, 0, 0.17364822, 0.9848077, 0, -0.9848077, 0.17364822, 14, 18, 15)
 
-[node name="RoomLobby" parent="." instance=ExtResource("1_jyhfs")]
+[node name="RoomLobby" parent="." unique_id=488992200 instance=ExtResource("1_jyhfs")]
 
-[node name="Player" parent="RoomLobby" node_paths=PackedStringArray("_attachment_points") instance=ExtResource("2_tbgi4")]
+[node name="Player" parent="RoomLobby" unique_id=1374674035 node_paths=PackedStringArray("_attachment_points") instance=ExtResource("2_tbgi4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.606604, 0.09957409, 5.87055)
 _attachment_points = {
 &"body": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/ChestAttachment"),
@@ -52,26 +52,26 @@ _attachment_points = {
 &"root": NodePath("Visuals/Barbarian/Rig_Medium/Skeleton3D/RootAttachment")
 }
 
-[node name="Teleporter" parent="RoomLobby" node_paths=PackedStringArray("target_room", "target") instance=ExtResource("3_tbgi4")]
+[node name="Teleporter" parent="RoomLobby" unique_id=1637015695 node_paths=PackedStringArray("target_room", "target") instance=ExtResource("3_tbgi4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1, 1.060358)
 target_room = NodePath("../../RoomDungeon")
 target = NodePath("../../RoomDungeon/Teleporter")
 
-[node name="RoomDungeon" parent="." instance=ExtResource("3_tefeu")]
+[node name="RoomDungeon" parent="." unique_id=1196200310 instance=ExtResource("3_tefeu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -25)
 
-[node name="Teleporter" parent="RoomDungeon" node_paths=PackedStringArray("target_room", "target") instance=ExtResource("3_tbgi4")]
+[node name="Teleporter" parent="RoomDungeon" unique_id=1052399418 node_paths=PackedStringArray("target_room", "target") instance=ExtResource("3_tbgi4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1, 19.060358)
 target_room = NodePath("../../RoomLobby")
 target = NodePath("../../RoomLobby/Teleporter")
 
-[node name="RoomBoss" parent="." instance=ExtResource("4_o6xl0")]
+[node name="RoomBoss" parent="." unique_id=606238264 instance=ExtResource("4_o6xl0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
 
-[node name="UILayer" type="CanvasLayer" parent="."]
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=187682095]
 layer = 100
 
-[node name="HUD" type="Control" parent="UILayer"]
+[node name="HUD" type="Control" parent="UILayer" unique_id=378605047]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -80,7 +80,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="inventory" parent="UILayer/HUD" instance=ExtResource("7_o6xl0")]
+[node name="inventory" parent="UILayer/HUD" unique_id=450078576 instance=ExtResource("7_o6xl0")]
 visible = false
 layout_mode = 1
 anchors_preset = 2
@@ -90,7 +90,7 @@ offset_top = -436.0
 offset_right = 577.0
 grow_vertical = 0
 
-[node name="AttributeDashboard" parent="UILayer/HUD" instance=ExtResource("8_tipki")]
+[node name="AttributeDashboard" parent="UILayer/HUD" unique_id=1878836156 instance=ExtResource("8_tipki")]
 layout_mode = 0
 anchors_preset = 0
 anchor_left = 0.0
@@ -104,10 +104,10 @@ offset_bottom = 405.0
 grow_horizontal = 1
 grow_vertical = 1
 
-[node name="VitalHUD" parent="UILayer/HUD" instance=ExtResource("9_85g3d")]
+[node name="VitalHUD" parent="UILayer/HUD" unique_id=53643495 instance=ExtResource("9_85g3d")]
 layout_mode = 0
 
-[node name="StatusDebugPanel" parent="UILayer/HUD" instance=ExtResource("10_ya4ey")]
+[node name="StatusDebugPanel" parent="UILayer/HUD" unique_id=863324020 instance=ExtResource("10_ya4ey")]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -116,14 +116,14 @@ offset_left = -379.0
 offset_right = 0.0
 grow_horizontal = 0
 
-[node name="AbilityBar" parent="UILayer/HUD" instance=ExtResource("11_trceg")]
+[node name="AbilityBar" parent="UILayer/HUD" unique_id=450469070 instance=ExtResource("11_trceg")]
 layout_mode = 1
 anchors_preset = 7
 anchor_top = 1.0
 anchor_bottom = 1.0
 grow_vertical = 0
 
-[node name="TagDebugPanel" parent="." instance=ExtResource("10_choun")]
+[node name="TagDebugPanel" parent="." unique_id=75496536 instance=ExtResource("10_choun")]
 anchors_preset = 4
 anchor_left = 0.0
 anchor_right = 0.0
@@ -133,7 +133,7 @@ offset_right = 506.0
 offset_bottom = 366.0
 grow_horizontal = 1
 
-[node name="BtDebugPanel" parent="." instance=ExtResource("12_eb6dy")]
+[node name="BtDebugPanel" parent="." unique_id=1353596498 instance=ExtResource("12_eb6dy")]
 
-[node name="TalentTestNode" type="Node" parent="."]
+[node name="TalentTestNode" type="Node" parent="." unique_id=1157936771]
 script = ExtResource("14_a8y0u")

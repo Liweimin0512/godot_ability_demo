@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SacrificeAbilityDefinition" load_steps=22 format=3 uid="uid://6gemngjv4ru5"]
+[gd_resource type="Resource" script_class="SacrificeAbilityDefinition" format=3 uid="uid://6gemngjv4ru5"]
 
 [ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="1_jim2a"]
 [ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_r5oxu"]
