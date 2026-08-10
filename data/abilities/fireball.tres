@@ -7,7 +7,6 @@
 [ext_resource type="Script" uid="uid://bdhc2vg7g6673" path="res://addons/gameplay_abiltiy_system/scripts/abilities/definitions/projectile_ability_definition.gd" id="4_6jlwg"]
 [ext_resource type="Resource" uid="uid://dx7bus74iqqnh" path="res://data/projectiles/projectile_data_fireball.tres" id="4_dyx2a"]
 [ext_resource type="Texture2D" uid="uid://ckarr4gl6dpbp" path="res://assets/textures/burn.tres" id="5_0cy71"]
-[ext_resource type="Script" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/strategy_cursor_change.gd" id="6_0cy71"]
 [ext_resource type="Script" uid="uid://bh8lykstg57tm" path="res://addons/gameplay_abiltiy_system/scripts/filters/gameplay_filter.gd" id="9_5m1cr"]
 [ext_resource type="Script" uid="uid://bf12d8mu7p2bi" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/ground_targeting_strategy.gd" id="10_07wpr"]
 
@@ -16,9 +15,6 @@ script = ExtResource("2_6jlwg")
 metadata/_custom_type_script = "uid://cerfta25urv6h"
 
 [sub_resource type="Resource" id="Resource_5m1cr"]
-script = ExtResource("6_0cy71")
-cursor_texture = ExtResource("5_0cy71")
-cursor_hotspot = Vector2(16, 16)
 metadata/_custom_type_script = "uid://c7btvuqowhshg"
 
 [sub_resource type="Resource" id="Resource_hsgk6"]
