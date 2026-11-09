@@ -3,6 +3,7 @@ extends Node
 
 const UNIT_TEST = preload("res://tests/unit/ability_rules_test.gd")
 const COMBO_TEST = preload("res://tests/integration/sword_combo_test.gd")
+const ATTRIBUTE_TEST = preload("res://tests/unit/attribute_rules_test.gd")
 
 func _ready() -> void:
 	_run.call_deferred()
@@ -11,20 +12,27 @@ func _run() -> void:
 	get_tree().create_timer(40.0).timeout.connect(_on_timeout)
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	var suite: String = args[0] if not args.is_empty() else "all"
-	if args.size() > 1 or suite not in ["all", "unit", "integration"]:
-		push_error("Usage: test_runner.tscn -- [all|unit|integration]")
+	if args.size() > 1 or suite not in ["all", "unit", "integration", "attributes"]:
+		push_error("Usage: test_runner.tscn -- [all|unit|integration|attributes]")
 		get_tree().quit(2)
 		return
 
 	var failures: Array[String] = []
-	if suite != "integration":
+	if suite in ["all", "unit", "attributes"]:
+		var attributes: ATTRIBUTE_TEST = ATTRIBUTE_TEST.new()
+		add_child(attributes)
+		var attribute_failures: Array[String] = attributes.run()
+		failures.append_array(attribute_failures)
+		if attribute_failures.is_empty():
+			print("PASS attributes: attribute rules")
+	if suite in ["all", "unit"]:
 		var unit: UNIT_TEST = UNIT_TEST.new()
 		add_child(unit)
 		var unit_failures: Array[String] = unit.run()
 		failures.append_array(unit_failures)
 		if unit_failures.is_empty():
 			print("PASS unit: ability rules")
-	if suite != "unit":
+	if suite in ["all", "integration"]:
 		var integration: COMBO_TEST = COMBO_TEST.new()
 		add_child(integration)
 		var combo_failures: Array[String] = await integration.run()

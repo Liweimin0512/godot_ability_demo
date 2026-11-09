@@ -70,23 +70,23 @@ func get_percent() -> float:
 	return current_value / _cached_max if _cached_max > 0 else 0.0
 
 ## 更新缓存的最大值
-func _update_cached_max() -> void:
+func _update_cached_max() -> bool:
 	if not is_instance_valid(_owner_comp):
 		push_error("Vital: _owner component is not valid!")
-		return
-	var old_max = _cached_max
+		return false
+	var old_max: float = _cached_max
 	_cached_max = _owner_comp.get_value(max_value_attribute)
-	if old_max != _cached_max:
-		value_changed.emit(current_value, _cached_max, get_percent(), false)
+	return old_max != _cached_max
 
 func _modify_value(amount: float, is_regen: bool = false) -> void:
-	_update_cached_max()
-	var old_val = current_value
+	var max_changed: bool = _update_cached_max()
+	var old_val: float = current_value
 	current_value = clampf(current_value + amount, 0.0, _cached_max)
 	
-	if old_val == current_value: return
+	if max_changed or old_val != current_value:
+		value_changed.emit(current_value, _cached_max, get_percent(), is_regen)
 
-	value_changed.emit(current_value, _cached_max, get_percent(), is_regen)
+	if old_val == current_value: return
 	
 	if current_value <= 0 and old_val > 0:
 		depleted.emit()
@@ -95,11 +95,8 @@ func _modify_value(amount: float, is_regen: bool = false) -> void:
 
 ## 属性变化回调
 ## [param] attr_id: StringName 变化的属性ID
-## [param] val: float 新值
-func _on_attribute_changed(attr_id: StringName, val: float) -> void:
+func _on_attribute_changed(attr_id: StringName, _value: float) -> void:
 	if attr_id != max_value_attribute: return
-	_update_cached_max()
-	# 策略：最大值变大时，保持当前值不变，但截断上限
-	if current_value > _cached_max:
-		current_value = _cached_max
+	if _update_cached_max():
+		current_value = minf(current_value, _cached_max)
 		value_changed.emit(current_value, _cached_max, get_percent(), false)
