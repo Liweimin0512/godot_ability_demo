@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ActiveAbilityDefinition" load_steps=14 format=3 uid="uid://dmnooaeqi2456"]
+[gd_resource type="Resource" script_class="ActiveAbilityDefinition" load_steps=17 format=3 uid="uid://dmnooaeqi2456"]
 
 [ext_resource type="Script" uid="uid://cmn60ti1qd07f" path="res://addons/gameplay_abiltiy_system/scripts/abilities/costs/ability_cost_base.gd" id="1_lsrl3"]
 [ext_resource type="Script" uid="uid://cb3e3wuphyka3" path="res://addons/gameplay_abiltiy_system/scripts/effects/gameplay_effect.gd" id="2_sd8r2"]
@@ -10,12 +10,18 @@
 [ext_resource type="Texture2D" uid="uid://ctj6y75llx3sp" path="res://assets/textures/heavy_attack_ability.tres" id="7_bvqjp"]
 [ext_resource type="Script" uid="uid://d4dx1ucwohpq1" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/hit_detector/melee_box_hit_detector.gd" id="9_wryr6"]
 [ext_resource type="Script" uid="uid://by7ais2w8q57b" path="res://addons/gameplay_abiltiy_system/scripts/abilities/targeting/strategies/hit_detector_targeting_strategy.gd" id="10_c1lxn"]
+[ext_resource type="Script" path="res://addons/gameplay_abiltiy_system/scripts/effects/ge_apply_status.gd" id="11_apply_status"]
+[ext_resource type="Resource" path="res://data/ability_status/heavy_attack_bleed.tres" id="12_bleed"]
 
 [sub_resource type="Resource" id="Resource_55x0q"]
 script = ExtResource("5_lbseu")
 damage_multiplier = 1.5
 cue = ExtResource("3_bvqjp")
 metadata/_custom_type_script = "uid://cra1yv70jj5sn"
+
+[sub_resource type="Resource" id="Resource_apply_bleed"]
+script = ExtResource("11_apply_status")
+status_data = ExtResource("12_bleed")
 
 [sub_resource type="Resource" id="Resource_bgjd6"]
 script = ExtResource("9_wryr6")
@@ -36,11 +42,11 @@ animation_name = &"jump_attack"
 pre_cast_delay = 0.6
 post_cast_delay = 0.4
 cooldown_duration = 1.0
-effects = Array[ExtResource("2_sd8r2")]([SubResource("Resource_55x0q")])
+effects = Array[ExtResource("2_sd8r2")]([SubResource("Resource_55x0q"), SubResource("Resource_apply_bleed")])
 targeting_strategy = SubResource("Resource_rdqs1")
 input_action = &"attack"
 ability_id = &"heavy_attack"
 ability_name = "重击"
-description = "重击，跳起来打！"
+description = "跳起来重击，命中后使目标流血。"
 icon = ExtResource("7_bvqjp")
 metadata/_custom_type_script = "uid://bm4h231fb21pv"
