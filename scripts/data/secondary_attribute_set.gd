@@ -67,25 +67,20 @@ func on_attribute_changed(comp: GameplayAttributeComponent, attr_id: StringName,
 ## [param] comp: GameplayAttributeComponent 属性组件
 ## [param] sec_id: StringName 二级属性ID
 func _recalculate_derived_attribute(comp: GameplayAttributeComponent, sec_id: StringName) -> void:
-	# A. 获取该属性在 Resource 配置中的原始初始值
-	var initial_base := 0.0
-	for attr_res in attributes:
-		if attr_res.attribute_id == sec_id:
-			initial_base = attributes[attr_res]
-			break
+	var instance: GameplayAttributeInstance = comp.get_attribute(sec_id)
+	if not is_instance_valid(instance):
+		return
 
-	# B. 计算所有一级属性的加成
-	var bonus = 0.0
-	var mapping : Dictionary = attribute_mappings[sec_id]  # { strength: 10.0, ... }
-	
-	for prim_id in mapping:
-		var multiplier = mapping[prim_id]
-		# 获取一级属性的最终值
-		var prim_val = comp.get_value(prim_id)
-		bonus += prim_val * multiplier
-	
-	# C. 设置新的基础值 (NewBase = ConfigBase + Bonus)
-	comp.set_base_value(sec_id, initial_base + bonus)
+	var bonus: float = 0.0
+	var mapping: Dictionary = attribute_mappings[sec_id]
+	for prim_id: StringName in mapping:
+		var multiplier: float = mapping[prim_id]
+		bonus += comp.get_value(prim_id) * multiplier
+
+	# Keep the configured level-one base and add only the curve's growth above it.
+	if is_instance_valid(instance.scalable_value) and attributes.has(instance.attribute_def):
+		bonus += attributes[instance.attribute_def] - instance.scalable_value.get_base_value()
+	instance.set_derived_bonus(bonus)
 
 ## 初始化依赖缓存
 func _init_cache() -> void:

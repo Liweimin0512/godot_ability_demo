@@ -12,6 +12,7 @@ var scalable_value: ScalableValue = null  				## 可扩展数值
 var current_level: int = 1 : set = _set_current_level  	## 当前等级
 
 var _modifiers: Dictionary[ModifierType, Array] = {}  	## 修改器列表
+var _derived_bonus: float = 0.0
 # 性能优化
 var _cached_final_value: float = 0.0						## 缓存
 var _dirty : bool = true									## 脏标记
@@ -44,6 +45,13 @@ func set_scalable_value(value: ScalableValue) -> void:
 		base_value = scalable_value.get_value_at_level(current_level)
 		_on_data_changed()
 
+## Updates the contribution from dependencies without replacing the level-scaled base.
+func set_derived_bonus(bonus: float) -> void:
+	if _derived_bonus == bonus:
+		return
+	_derived_bonus = bonus
+	_on_data_changed()
+
 ## 添加修改器
 ## [param] mod: GameplayAttributeModifier 修改器实例
 func add_modifier(mod: GameplayAttributeModifier) -> void:
@@ -68,6 +76,11 @@ func remove_modifier(mod: GameplayAttributeModifier) -> void:
 		push_warning("AttributeInstance: _modifiers not has mod: %s" %mod)
 		return
 	_modifiers[mod.modifier_type].erase(mod)
+	if _modifiers_by_source_id.has(mod.source_id):
+		var source_modifiers: Array = _modifiers_by_source_id[mod.source_id]
+		source_modifiers.erase(mod)
+		if source_modifiers.is_empty():
+			_modifiers_by_source_id.erase(mod.source_id)
 	_on_data_changed()
 
 ## 根据 source_id 批量移除修改器
@@ -119,7 +132,7 @@ func _recalculate_value() -> void:
 			product_mult += mod.value
 		# 标准公式：(基础值 + 加法修正) * (1 + 乘法修正总和)
 		# 假设 Modifier 的 Multiply 填 0.1 代表增加 10%
-		final = (base_value + sum_add) * (1.0 + product_mult)
+		final = (base_value + _derived_bonus + sum_add) * (1.0 + product_mult)
 		
 	# 限制范围
 	if is_instance_valid(attribute_def):
