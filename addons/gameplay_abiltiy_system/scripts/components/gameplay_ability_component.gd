@@ -46,6 +46,15 @@ func _process(delta: float) -> void:
 
 		# 更新技能（包括冷却时间）
 		ability_instance.update(delta)
+
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_PREDELETE:
+		return
+
+	# The blackboard holds the ability in its runtime context. Break that cycle
+	# before this component releases ownership of its learned instances.
+	for ability: GameplayAbilityInstance in _learned_abilities.values():
+		ability.clear_blackboard()
 #endregion
 
 #region ========== 公共API - 技能管理 ==========
@@ -119,8 +128,14 @@ func forget_ability(ability_id: StringName) -> void:
 	
 	if ability_instance.ability_completed.is_connected(_on_ability_completed):
 		ability_instance.ability_completed.disconnect(_on_ability_completed)
+	if _current_casting_ability == ability_instance:
+		_current_casting_ability = null
+	if _current_targeting_ability == ability_instance:
+		cancel_ability_preview(ability_id)
+	ability_instance.end_ability(BTNode.Status.FAILURE)
 	# 移除被动技能效果
 	ability_instance.handle_forgotten(self)
+	ability_instance.clear_blackboard()
 	_learned_abilities.erase(ability_id)
 
 	ability_forgotten.emit(ability_id)

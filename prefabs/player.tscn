@@ -193,4 +193,11 @@ metadata/_custom_type_script = "uid://b6hkniyhlhrsf"
 script = ExtResource("29_sh7kr")
 metadata/_custom_type_script = "uid://n8p5beakef7b"
 
+[node name="StartupChecks" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+autostart = true
+
+[connection signal="timeout" from="StartupChecks" to="." method="_on_startup_checks_timeout"]
+
 [editable path="Visuals/Barbarian"]

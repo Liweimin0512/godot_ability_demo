@@ -1,0 +1,131 @@
+extends Node
+## Drives the demo's sword combo through its input, physics and status components.
+
+const BLEED_ID: StringName = &"heavy_attack_bleed"
+const TALENT_PATH: String = "res://data/talents/combo_mastery_talent.tres"
+
+var _failures: Array[String] = []
+var _applications: int = 0
+var _removals: int = 0
+var _health_deltas: Array[float] = []
+var _previous_health: float = 0.0
+
+func run() -> Array[String]:
+	var scene: PackedScene = load("res://scenes/main.tscn") as PackedScene
+	if not _expect(scene != null, "main scene loads"):
+		return _failures
+	var demo: Node = scene.instantiate()
+	add_child(demo)
+	var player: Player = demo.get_node("RoomLobby/Player") as Player
+	var enemy: CharacterBody3D = demo.get_node("RoomDungeon/Enemies/Enemy") as CharacterBody3D
+	var combo: GameplayAbilityInstance = await _equip_and_learn_combo(player)
+	var runtime_refs: Array[WeakRef] = []
+	if combo != null:
+		var failures_before_combo: int = _failures.size()
+		await _verify_combo(player, enemy, combo)
+		# Leave an active cast in the scene to exercise teardown during gameplay.
+		if _failures.size() == failures_before_combo:
+			_expect(player.ability_component.try_activate_ability(&"attack"), "combo can start again before teardown")
+		runtime_refs.assign([weakref(combo), weakref(combo.get_bt_instance()), weakref(combo.get_blackboard())])
+		combo = null
+	demo.queue_free()
+	await get_tree().process_frame
+	for reference: WeakRef in runtime_refs:
+		_expect(reference.get_ref() == null, "scene teardown releases the active skill, tree and blackboard")
+	_test_early_player_teardown()
+	return _failures
+
+func _test_early_player_teardown() -> void:
+	var player_scene: PackedScene = load("res://prefabs/player.tscn") as PackedScene
+	var player: Player = player_scene.instantiate() as Player
+	add_child(player)
+	var startup_timer: Timer = player.get_node_or_null("StartupChecks") as Timer
+	var pending: WeakRef = null
+	if _expect(startup_timer != null and not startup_timer.is_stopped(), "startup check is pending on a player-owned timer"):
+		pending = weakref(startup_timer)
+	player.free()
+	if pending != null:
+		_expect(pending.get_ref() == null, "early player removal releases the pending startup timer")
+
+func _equip_and_learn_combo(player: Player) -> GameplayAbilityInstance:
+	var inventory: C_Inventory = player.get_inventory()
+	for item: Item in inventory.items:
+		if item is Equip and item.name == "大剑":
+			inventory.equip_item(item as Equip)
+			var original: WeakRef = weakref(player.ability_component.get_ability_instance(&"attack"))
+			ConsoleCommands.apply_talent("Player", TALENT_PATH)
+			# The old ability button releases its reference when its queued free runs.
+			await get_tree().process_frame
+			_expect(original.get_ref() == null, "talent replacement releases the forgotten skill")
+			var combo: GameplayAbilityInstance = player.ability_component.get_ability_instance(&"attack")
+			if _expect(combo != null and combo.get_definition() is ComboAbilityDefinition, "talent replaces the equipped sword attack"):
+				return combo
+			return null
+	_expect(false, "sword is available in the player inventory")
+	return null
+
+func _verify_combo(player: Player, enemy: CharacterBody3D, combo: GameplayAbilityInstance) -> void:
+	var status: GameplayStatusComponent = enemy.get_node("GameplayStatusComponent") as GameplayStatusComponent
+	var vitals: GameplayVitalAttributeComponent = enemy.get_node("GameplayVitalAttributeComponent") as GameplayVitalAttributeComponent
+	var health: GameplayVital = vitals.get_vital(&"health")
+	_previous_health = health.current_value
+	health.value_changed.connect(_on_health_changed)
+	status.status_applied.connect(_on_status_applied)
+	status.status_removed.connect(_on_status_removed)
+
+	await get_tree().physics_frame
+	if not await _perform_combo(combo):
+		return
+	if not _expect(_applications == 0 and not status.has_status(BLEED_ID) and _health_deltas.is_empty(),
+			"third-stage whiff neither applies bleed nor changes health"):
+		return
+	await get_tree().create_timer(1.25).timeout
+
+	# Put the actual enemy's hit area in range and let physics register the move.
+	var facing: Vector3 = player.get_visuals().global_transform.basis * Vector3.FORWARD
+	enemy.global_position = player.global_position + facing.normalized() * 1.1
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if not await _perform_combo(combo):
+		return
+	if not _expect(_applications == 1 and status.has_status(BLEED_ID),
+			"third strike applies bleed once"):
+		return
+	_expect(_health_deltas.size() == 3 and _health_deltas.all(
+			func(delta: float) -> bool: return delta < 0.0),
+			"three direct strikes occur before the first bleed tick")
+	await get_tree().create_timer(4.5).timeout
+	_expect(_removals == 1 and not status.has_status(BLEED_ID), "bleed expires exactly once")
+	_expect(_health_deltas.size() == 6 and _health_deltas.slice(3) == [-3.0, -3.0, -3.0],
+			"exactly three bleed ticks deduct three health each, with no late tick")
+
+func _perform_combo(combo: GameplayAbilityInstance) -> bool:
+	for step: int in range(3):
+		var event: InputEventMouseButton = InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_RIGHT
+		event.pressed = true
+		# Exercise the player's unhandled input regardless of the test window's HUD focus.
+		get_viewport().push_unhandled_input(event, true)
+		await get_tree().create_timer(1.15).timeout
+		var index: int = combo.get_blackboard_var("combo_index", 0) as int
+		if not _expect(index == step and (step == 2 or combo.is_active),
+				"input reaches combo stage %d" % (step + 1)):
+			return false
+	return true
+
+func _on_health_changed(current: float, _maximum: float, _percent: float, _regen: bool) -> void:
+	_health_deltas.append(current - _previous_health)
+	_previous_health = current
+
+func _on_status_applied(id: StringName, _instance: GameplayStatusInstance) -> void:
+	if id == BLEED_ID:
+		_applications += 1
+
+func _on_status_removed(id: StringName) -> void:
+	if id == BLEED_ID:
+		_removals += 1
+
+func _expect(condition: bool, label: String) -> bool:
+	if not condition:
+		_failures.append("%s (HP deltas: %s)" % [label, _health_deltas])
+	return condition

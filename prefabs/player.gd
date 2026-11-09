@@ -62,11 +62,6 @@ func _ready() -> void:
 	inventory_component.add_item(STAFF.duplicate())
 	inventory_component.add_item(SWORD.duplicate())
 	
-	await get_tree().create_timer(2).timeout
-	ability_component.forget_ability(&"damage_reduction_shield_passive")
-
-	_test_level_scaling()
-
 func _process(_delta) -> void:
 	# 实时更新指示器位置
 	ability_component.update_targeting(_delta, {
@@ -467,3 +462,7 @@ func _test_level_scaling() -> void:
 	assert(attack_lv1 > attack_lv1_again, "Attack should increase with level")
 
 	print("✓ Test passed: Level scaling works correctly")
+
+func _on_startup_checks_timeout() -> void:
+	ability_component.forget_ability(&"damage_reduction_shield_passive")
+	_test_level_scaling()
