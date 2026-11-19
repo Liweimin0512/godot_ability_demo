@@ -1,0 +1,48 @@
+name: Godot demo regression
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    name: Import and run demo tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GODOT_VERSION: '4.7.2'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        run: |
+          official_url="https://downloads.godotengine.org/?flavor=stable&platform=linux.64&slug=linux.x86_64.zip&version=$GODOT_VERSION"
+          release_url="https://github.com/godotengine/godot/releases/download/$GODOT_VERSION-stable/Godot_v$GODOT_VERSION-stable_linux.x86_64.zip"
+          if ! curl --fail --show-error --location --connect-timeout 10 --max-time 90 --retry 1 --output "$RUNNER_TEMP/godot.zip" "$official_url"; then
+            curl --fail --show-error --location --connect-timeout 10 --max-time 90 --retry 1 --output "$RUNNER_TEMP/godot.zip" "$release_url"
+          fi
+          unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          godot_bin="$RUNNER_TEMP/godot/Godot_v$GODOT_VERSION-stable_linux.x86_64"
+          chmod +x "$godot_bin"
+          version="$("$godot_bin" --version)"
+          case "$version" in
+            "$GODOT_VERSION".stable.*) ;;
+            *) echo "Unexpected Godot version $version"; exit 1 ;;
+          esac
+          echo "GODOT_BIN=$godot_bin" >> "$GITHUB_ENV"
+      - name: Import, start the demo, and run regressions
+        shell: bash
+        run: |
+          "$GODOT_BIN" --headless --path . --editor --import 2>&1 | tee "$RUNNER_TEMP/import.log"
+          "$GODOT_BIN" --headless --path . --quit-after 120 2>&1 | tee "$RUNNER_TEMP/startup.log"
+          "$GODOT_BIN" --headless --path . --fixed-fps 60 --quit-after 10000 res://tests/test_runner.tscn -- all 2>&1 | tee "$RUNNER_TEMP/suite.log"
+          rg -qx 'Registered 11 tags' "$RUNNER_TEMP/startup.log"
+          rg -qx 'PASS Godot demo tests \(all\)' "$RUNNER_TEMP/suite.log"
+          # Godot can return 0 even when a script or resource fails to load.
+          if rg -n 'SCRIPT ERROR:|Unrecognized UID|[Ff]ailed to load (script|resource)|Can.t open file from path|Error importing' "$RUNNER_TEMP"/{import,startup,suite}.log; then
+            exit 1
+          fi
