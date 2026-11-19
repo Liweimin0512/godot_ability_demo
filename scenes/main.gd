@@ -12,7 +12,7 @@ const TRANSITION_TIME = 1.5
 
 func _enter_tree() -> void:
 	# 注册标签系统
-	var tag_count := TagManager.register_tags_from_directory("res://data/tags/")
+	var tag_count: int = TagManager.register_tags_from_directory("res://data/tags/")
 	print("Registered %d tags" % tag_count)
 
 func _ready() -> void:

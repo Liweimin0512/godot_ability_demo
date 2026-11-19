@@ -16,6 +16,8 @@ func run() -> Array[String]:
 		return _failures
 	var demo: Node = scene.instantiate()
 	add_child(demo)
+	var debug_panel: Window = demo.get_node("BtDebugPanel") as Window
+	_expect(not debug_panel.visible, "the behavior-tree debugger starts hidden")
 	var player: Player = demo.get_node("RoomLobby/Player") as Player
 	var enemy: CharacterBody3D = demo.get_node("RoomDungeon/Enemies/Enemy") as CharacterBody3D
 	var combo: GameplayAbilityInstance = await _equip_and_learn_combo(player)
@@ -74,11 +76,12 @@ func _verify_combo(player: Player, enemy: CharacterBody3D, combo: GameplayAbilit
 	status.status_removed.connect(_on_status_removed)
 
 	await get_tree().physics_frame
-	if not await _perform_combo(combo):
+	if not await _perform_combo(combo, false):
 		return
 	if not _expect(_applications == 0 and not status.has_status(BLEED_ID) and _health_deltas.is_empty(),
 			"third-stage whiff neither applies bleed nor changes health"):
 		return
+	print("Sword combo: whiff caused no damage or bleed")
 	await get_tree().create_timer(1.25).timeout
 
 	# Put the actual enemy's hit area in range and let physics register the move.
@@ -86,30 +89,45 @@ func _verify_combo(player: Player, enemy: CharacterBody3D, combo: GameplayAbilit
 	enemy.global_position = player.global_position + facing.normalized() * 1.1
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	if not await _perform_combo(combo):
+	if not await _perform_combo(combo, true):
 		return
 	if not _expect(_applications == 1 and status.has_status(BLEED_ID),
 			"third strike applies bleed once"):
 		return
-	_expect(_health_deltas.size() == 3 and _health_deltas.all(
-			func(delta: float) -> bool: return delta < 0.0),
-			"three direct strikes occur before the first bleed tick")
+	_expect(_health_deltas.all(func(delta: float) -> bool: return delta < 0.0),
+			"each direct strike deducts health before the first bleed tick")
+	print("Sword combo: three direct hits %s" % str(_health_deltas))
 	await get_tree().create_timer(4.5).timeout
 	_expect(_removals == 1 and not status.has_status(BLEED_ID), "bleed expires exactly once")
 	_expect(_health_deltas.size() == 6 and _health_deltas.slice(3) == [-3.0, -3.0, -3.0],
 			"exactly three bleed ticks deduct three health each, with no late tick")
+	print("Sword combo: HP deltas after expiry %s" % str(_health_deltas))
 
-func _perform_combo(combo: GameplayAbilityInstance) -> bool:
+func _perform_combo(combo: GameplayAbilityInstance, expect_hits: bool) -> bool:
+	var cooldown: CooldownFeature = combo.get_feature("CooldownFeature") as CooldownFeature
+	if not _expect(cooldown != null, "combo has a cooldown feature"):
+		return false
 	for step: int in range(3):
 		var event: InputEventMouseButton = InputEventMouseButton.new()
 		event.button_index = MOUSE_BUTTON_RIGHT
 		event.pressed = true
-		# Exercise the player's unhandled input regardless of the test window's HUD focus.
-		get_viewport().push_unhandled_input(event, true)
+		event.position = get_viewport().get_visible_rect().size * Vector2(0.5, 0.25)
+		event.global_position = event.position
+		get_viewport().push_input(event, true)
+		var release: InputEventMouseButton = event.duplicate() as InputEventMouseButton
+		release.pressed = false
+		get_viewport().push_input(release, true)
 		await get_tree().create_timer(1.15).timeout
 		var index: int = combo.get_blackboard_var("combo_index", 0) as int
-		if not _expect(index == step and (step == 2 or combo.is_active),
+		var finished: bool = step == 2
+		if not _expect(index == step and combo.is_active != finished,
 				"input reaches combo stage %d" % (step + 1)):
+			return false
+		if not _expect((cooldown.get_cooldown_remaining(combo) > 0.0) == finished,
+				"whole-combo cooldown starts after the third stage"):
+			return false
+		if not _expect(_health_deltas.size() == (step + 1 if expect_hits else 0),
+				"stage %d has the expected number of direct hits" % (step + 1)):
 			return false
 	return true
 

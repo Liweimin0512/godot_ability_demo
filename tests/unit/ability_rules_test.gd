@@ -8,6 +8,7 @@ var _failures: Array[String] = []
 func run() -> Array[String]:
 	_test_input_binding()
 	_test_blackboard()
+	_test_wait_uses_tree_delta()
 	_test_duration()
 	_test_refresh()
 	_test_periodic_effect()
@@ -42,6 +43,21 @@ func _test_blackboard() -> void:
 	board.clear()
 	_expect(not board.has_var("combo_index"), "clear removes public values")
 	_expect(board.get_node_data(node, 0.0) == 0.0, "clear removes node memory")
+
+func _test_wait_uses_tree_delta() -> void:
+	var wait: BTWait = BTWait.new()
+	wait.duration = 0.5
+	wait.duration_key = "cast_delay"
+	var first: BTInstance = BTInstance.new(self, wait)
+	var second: BTInstance = BTInstance.new(self, wait)
+	second.blackboard.set_var("cast_delay", 0.75)
+	_expect(first.tick(0.25) == BTNode.Status.RUNNING, "wait stays active before its duration")
+	_expect(first.tick(0.0) == BTNode.Status.RUNNING, "a paused tree does not advance a wait")
+	_expect(first.tick(0.25) == BTNode.Status.SUCCESS, "wait completes on elapsed tree time")
+	_expect(second.tick(0.5) == BTNode.Status.RUNNING, "the second instance uses its own wait override")
+	second.reset_tree()
+	_expect(second.tick(0.5) == BTNode.Status.RUNNING, "reset restarts the wait")
+	_expect(second.tick(0.25) == BTNode.Status.SUCCESS, "the reset wait completes at its duration")
 
 func _test_duration() -> void:
 	var policy: DurationNaturalTime = DurationNaturalTime.new()

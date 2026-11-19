@@ -134,6 +134,7 @@ offset_bottom = 366.0
 grow_horizontal = 1
 
 [node name="BtDebugPanel" parent="." unique_id=1353596498 instance=ExtResource("12_eb6dy")]
+visible = false
 
 [node name="TalentTestNode" type="Node" parent="." unique_id=1157936771]
 script = ExtResource("14_a8y0u")
