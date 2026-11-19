@@ -40,9 +40,9 @@ jobs:
           "$GODOT_BIN" --headless --path . --editor --import 2>&1 | tee "$RUNNER_TEMP/import.log"
           "$GODOT_BIN" --headless --path . --quit-after 120 2>&1 | tee "$RUNNER_TEMP/startup.log"
           "$GODOT_BIN" --headless --path . --fixed-fps 60 --quit-after 10000 res://tests/test_runner.tscn -- all 2>&1 | tee "$RUNNER_TEMP/suite.log"
-          rg -qx 'Registered 11 tags' "$RUNNER_TEMP/startup.log"
-          rg -qx 'PASS Godot demo tests \(all\)' "$RUNNER_TEMP/suite.log"
+          grep -Fxq 'Registered 11 tags' "$RUNNER_TEMP/startup.log"
+          grep -Fxq 'PASS Godot demo tests (all)' "$RUNNER_TEMP/suite.log"
           # Godot can return 0 even when a script or resource fails to load.
-          if rg -n 'SCRIPT ERROR:|Unrecognized UID|[Ff]ailed to load (script|resource)|Can.t open file from path|Error importing' "$RUNNER_TEMP"/{import,startup,suite}.log; then
+          if grep -En 'SCRIPT ERROR:|Unrecognized UID|[Ff]ailed to load (script|resource)|Can.t open file from path|Error importing' "$RUNNER_TEMP"/{import,startup,suite}.log; then
             exit 1
           fi
