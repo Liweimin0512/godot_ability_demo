@@ -46,3 +46,6 @@ jobs:
           if grep -En 'SCRIPT ERROR:|Unrecognized UID|[Ff]ailed to load (script|resource)|Can.t open file from path|Error importing' "$RUNNER_TEMP"/{import,startup,suite}.log; then
             exit 1
           fi
+          if grep -En 'ObjectDB instances (were )?leaked at exit|resources? still in use at exit|Resource still in use:|Leaked instance:' "$RUNNER_TEMP"/{import,startup,suite}.log; then
+            exit 1
+          fi

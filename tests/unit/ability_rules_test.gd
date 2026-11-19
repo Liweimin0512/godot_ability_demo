@@ -13,6 +13,7 @@ func run() -> Array[String]:
 	_test_refresh()
 	_test_periodic_effect()
 	_test_vital_cost()
+	_test_composed_effect_releases_clones()
 	return _failures
 
 func _test_input_binding() -> void:
@@ -127,6 +128,30 @@ func _test_vital_cost() -> void:
 			"an unaffordable cost leaves the balance intact")
 	target.free()
 
+func _test_composed_effect_releases_clones() -> void:
+	var parent: RecordingEffect = RecordingEffect.new()
+	parent.label = "parent"
+	var child: RecordingEffect = RecordingEffect.new()
+	child.label = "child"
+	var leaf: RecordingEffect = RecordingEffect.new()
+	leaf.label = "leaf"
+	child.sub_effects.append(leaf)
+	parent.sub_effects.assign([null, Resource.new(), child])
+
+	var events: Array[String] = []
+	var references: Array[WeakRef] = []
+	var context: Dictionary = {"events": events, "references": references}
+	parent.apply(null, null, context)
+	parent.remove(null, null, context)
+
+	if not _expect(events == [
+		"apply parent", "apply child", "apply leaf",
+		"remove parent", "remove child", "remove leaf",
+	], "nested effects apply and remove in order, skipping empty and unrelated resources"):
+		return
+	for index: int in [1, 2, 4, 5]:
+		_expect(references[index].get_ref() == null, "sub-effect clone is released after use")
+
 func _make_health_target() -> Node:
 	var target: Node = Node.new()
 	var vitals: GameplayVitalAttributeComponent = GameplayVitalAttributeComponent.new()
@@ -146,3 +171,18 @@ func _expect(condition: bool, label: String) -> bool:
 	if not condition:
 		_failures.append(label)
 	return condition
+
+class RecordingEffect extends GameplayEffect:
+	@export var label: String = ""
+
+	func _apply(_target: Node, _instigator: Node, context: Dictionary) -> void:
+		_record(context, "apply")
+
+	func _remove(_target: Node, _instigator: Node, context: Dictionary) -> void:
+		_record(context, "remove")
+
+	func _record(context: Dictionary, operation: String) -> void:
+		var events: Array[String] = context["events"]
+		var references: Array[WeakRef] = context["references"]
+		events.append("%s %s" % [operation, label])
+		references.append(weakref(self))

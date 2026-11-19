@@ -7,7 +7,8 @@ class_name GameplayEffect
 
 # --- 过滤与组合 ---
 @export var filters: Array[GameplayFilterData] = []  ## 过滤器，如果为空，则不过滤
-@export var sub_effects: Array[GameplayEffect] = []  ## 子效果，支持效果组合
+## Child effects are checked before use. A self-typed array retains GDScript at shutdown in Godot 4.7.2.
+@export var sub_effects: Array[Resource] = []
 
 # --- 标签要求（标签系统集成）---
 @export_group("Tag Requirements")
@@ -87,33 +88,26 @@ func _execute_cue(target: Node, context: Dictionary) -> void:
 	GameplayCueManager.execute_cue(cue, target, context)
 
 func _apply_sub_effects(target: Node, instigator: Node, context: Dictionary) -> void:
-	# 注意：子效果也需要克隆，避免运行时状态共享
-	for effect in sub_effects:
-		if not is_instance_valid(effect):
-			continue
-		
-		# 克隆子效果实例
-		var sub_effect_inst = effect.duplicate(true) as GameplayEffect
-		if not is_instance_valid(sub_effect_inst):
-			continue
-		
-		# 递归应用子效果（每个子效果会自己执行完整的 apply 流程）
-		sub_effect_inst.apply(target, instigator, context)
+	for resource: Resource in sub_effects:
+		var child: GameplayEffect = _duplicate_sub_effect(resource)
+		if is_instance_valid(child):
+			child.apply(target, instigator, context)
 
 ## 移除子效果（内部方法，供基类和子类使用）
 ## [param] target: Node 目标节点
 ## [param] instigator: Node 施法者节点
 ## [param] context: 上下文信息
 func _remove_sub_effects(target: Node, instigator: Node, context: Dictionary) -> void:
-	for effect in sub_effects:
-		if not is_instance_valid(effect):
-			continue
-		# 克隆子效果实例
-		var sub_effect_inst = effect.duplicate(true) as GameplayEffect
-		if not is_instance_valid(sub_effect_inst):
-			continue
-		
-		sub_effect_inst.remove(target, instigator, context)
+	for resource: Resource in sub_effects:
+		var child: GameplayEffect = _duplicate_sub_effect(resource)
+		if is_instance_valid(child):
+			child.remove(target, instigator, context)
+
+func _duplicate_sub_effect(resource: Resource) -> GameplayEffect:
+	var effect: GameplayEffect = resource as GameplayEffect
+	if not is_instance_valid(effect):
+		return null
+	return effect.duplicate(true) as GameplayEffect
 
 @abstract func _apply(target: Node, instigator: Node, context: Dictionary)  -> void
 
