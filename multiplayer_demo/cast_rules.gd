@@ -67,7 +67,12 @@ func snapshot() -> Dictionary:
 		"mana": _vitals.get_vital_value(&"mana"),
 		"cooldown_active": _cooldown.get_cooldown_remaining(_ability) > 0.0,
 		"status_active": _statuses.has_status(ABILITY_ID),
+		"cast_active": _cast != null or _ability.is_active,
 	}
+
+func cancel_pending_cast() -> void:
+	if _cast != null:
+		_abilities.cancel_ability(ABILITY_ID)
 
 func _is_target(target: GameplayStatusComponent) -> bool:
 	return target == _statuses
