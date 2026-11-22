@@ -1,5 +1,21 @@
 # GDScript 演示测试
 
+## 双进程指定目标技能
+
+需要 Python 3.10+、Git、Godot 4.7.2，以及包含正式插件提交 `4e85c03` 的本地 Git 检出。在 Ability Demo 根目录执行，Windows 推荐使用 Godot 控制台版。
+
+```sh
+python tests/run_multiplayer_cast.py --godot "<Godot 可执行文件路径>" --plugin "<正式插件检出路径>"
+```
+
+运行器从固定提交归档插件，组装临时 Godot 工程，再启动主机和客户端两个独立进程。两端通过本机回环 UDP 通信，可用 `--port` 指定端口。工程来源位于 `multiplayer_demo/`，通过 `.gdignore` 与主演示的内置插件隔离。
+
+验收从客户端发出一次施法，并在主机受理和结算后各重发一次同号请求。主机只受理一次，Mana 从 10 降到 6，启动一次冷却，给主机侧目标施加一次短时标记，到期移除一次。客户端只根据版本递增的快照更新界面，拒收两个重复快照，场景树中的 Ability、Vital 和 Status 规则组件计数为零。冷却结束时，最终展示快照与主机快照及主机实时规则一致。成功输出 `PASS Ability Demo two-process cast against GAS 4e85c03`，失败输出两端日志。
+
+命令末尾加 `--play` 打开两个窗口。在客户端窗口按 Enter 或空格施法，观察两端的 Mana、冷却和标记变化。关闭任一窗口即可结束原型。每次启动使用一个新会话，断线施法清理和重连流程由后续提交验收。
+
+## 主演示回归
+
 在包含 `project.godot` 的演示目录运行。首次检出时先导入资源。把 `godot` 换成本机 Godot 4.6 的可执行文件路径，在 Windows 上可以用 console 版读取日志和退出码。
 
 ```sh
