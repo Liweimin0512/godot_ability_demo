@@ -2,6 +2,8 @@
 
 ## 双进程指定目标技能
 
+试玩入口、代码职责和宿主边界见[联机演示指南](../multiplayer_demo/README.md)。
+
 需要 Python 3.10+、Git、Godot 4.7.2，以及包含正式插件提交 `4e85c03` 的本地 Git 检出。在 Ability Demo 根目录执行，Windows 推荐使用 Godot 控制台版。
 
 ```sh
@@ -23,6 +25,8 @@ python tests/run_multiplayer_cast.py --godot "<Godot 可执行文件路径>" --p
 成功额外输出 `PASS Ability Demo disconnect and reconnect isolation`。主机为每次连接分配新的会话代次，按当前连接身份及代次校验请求。同一主机进程保留已提交的角色状态，重连从实时规则生成新快照。主机用收到断线事件与完成扣费的顺序裁决。
 
 运行器也验证主机本地玩家与远端玩家同时施法。两人用同一个请求号也能独立结算，各扣自己的 Mana、启动自己的冷却。选中的实体独立获得标记。目标在前摇中离场或移出 5 米范围时，主机返回 `TARGET_INVALID`，技能结算写入为零。
+
+实体同步用例验证目标离场后从客户端快照移除，较晚加入能看到主机在入场前已结算的 Mana 与标记。专用夹具把状态时间设为 5 秒，验证施法者冷却先结束时可对另一个目标开始前摇，两处标记分别到期。最终比对客户端快照、主机快照和主机实时实体状态，成功输出 `PASS Ability Demo actor ownership and entity synchronization`。
 
 命令末尾加 `--play` 打开两个窗口。主机控制 1 号角色，客户端控制 2 号角色，3 号是练习目标。两端按 1、2、3 选择目标，按 Enter 或空格施法。客户端按 R 断线，再按 R 连回当前主机。关闭任一窗口即可结束原型。
 

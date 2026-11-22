@@ -10,10 +10,16 @@ const PRACTICE_TARGET: int = 3
 const CAST_RANGE_SQUARED: float = 25.0
 
 var _actors: Dictionary[int, CastRules] = {}
+var long_status_actor_id: int = 0
 
 @onready var _host_actor: CastRules = $HostActor
 @onready var _client_actor: CastRules = $ClientActor
 @onready var _practice_target: CastRules = $PracticeTarget
+
+func _enter_tree() -> void:
+	if long_status_actor_id != 0:
+		var actor: CastRules = $HostActor if long_status_actor_id == HOST_ACTOR else $ClientActor
+		actor.status_seconds = 5.0
 
 func _ready() -> void:
 	var actors: Array[CastRules] = [_host_actor, _client_actor, _practice_target]
@@ -32,6 +38,8 @@ func try_cast(actor_id: int, ability_id: StringName, target_id: int) -> String:
 		return "BUSY"
 	if state["cooldown_active"]:
 		return "COOLDOWN"
+	if not caster.can_pay():
+		return "INSUFFICIENT_MANA"
 	var target: CastRules = _actors[target_id]
 	if not caster.activate(target.status_component(), _check_target.bind(actor_id, target_id)):
 		return "REJECTED"

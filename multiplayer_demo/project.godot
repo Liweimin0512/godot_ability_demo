@@ -6,7 +6,7 @@ run/main_scene="res://cast_demo.tscn"
 
 [display]
 window/size/viewport_width=680
-window/size/viewport_height=240
+window/size/viewport_height=320
 
 [autoload]
 GameplayAbilitySystem="*res://addons/godot_gameplay_abilities/scripts/singletons/gameplay_ability_system.gd"

@@ -6,6 +6,7 @@ signal settled(result: TargetedStatusAbilityDefinition.Result)
 const ABILITY_ID: StringName = &"targeted_mark"
 @export var entity_id: int = 0
 @export var faction: int = 0
+@export var status_seconds: float = 2.0
 var alive: bool = true
 
 var payments: int = 0
@@ -37,7 +38,7 @@ func _ready() -> void:
 	definition.ability_id = ABILITY_ID
 	definition.status = GameplayStatusData.new()
 	definition.status.status_id = ABILITY_ID
-	definition.status.duration = 2.0
+	definition.status.duration = status_seconds
 	_abilities.learn_ability(definition)
 	_ability = _abilities.get_ability_instance(ABILITY_ID)
 	_cooldown = _ability.get_feature("CooldownFeature") as CooldownFeature
@@ -50,6 +51,10 @@ func _ready() -> void:
 
 func status_component() -> GameplayStatusComponent:
 	return _statuses
+
+func can_pay() -> bool:
+	var definition: TargetedStatusAbilityDefinition = _ability.get_definition() as TargetedStatusAbilityDefinition
+	return _vitals.can_spend(definition.vital_id, definition.cost)
 
 func activate(target: GameplayStatusComponent, validate_target: Callable) -> bool:
 	var cast: TargetedStatusAbilityDefinition.Cast = TargetedStatusAbilityDefinition.Cast.new(
