@@ -4,18 +4,26 @@ extends Node
 const CastRules = preload("cast_rules.gd")
 const HOST_ID: int = 1
 const LOCAL_ADDRESS: String = "127.0.0.1"
+const RECEIPT_LIMIT: int = 32
 
 var _is_host: bool
 var _verify: bool
 var _verify_reconnect: bool
+var _verify_failure: String
 var _port: int
 var _rules: CastRules
 var _client_id: int = 0
 var _session: int = 0
 var _request_id: int = 0
+var _next_request_id: int = 0
+var _highest_request_id: int = 0
 var _version: int = 0
 var _snapshot: Dictionary = {}
-var _last_result: Dictionary = {}
+var _requests: Dictionary[int, Dictionary] = {}
+var _received: Dictionary[int, Dictionary] = {}
+var _last_receipt: Dictionary = {}
+var _receipt_log: Array[Dictionary] = []
+var _ignored_receipts: int = 0
 var _phase: String = "connecting"
 var _settlement: String = ""
 var _accepted: int = 0
@@ -39,7 +47,9 @@ func _ready() -> void:
 		return
 	_is_host = args[0] == "host"
 	_verify_reconnect = args.has("--verify-reconnect")
-	_verify = args.has("--verify") or _verify_reconnect
+	if args.size() >= 4 and args[2] == "--verify-failure":
+		_verify_failure = args[3]
+	_verify = args.has("--verify") or _verify_reconnect or not _verify_failure.is_empty()
 	_port = args[1].to_int()
 	if not _is_host:
 		multiplayer.connection_failed.connect(_on_connection_lost)
@@ -87,25 +97,58 @@ func request_cast(session: int, request_id: int, ability_id: StringName, target_
 	if session != _session:
 		_stale_requests += 1
 		return
-	if ability_id != CastRules.ABILITY_ID or target_id != CastRules.TARGET_ID or request_id <= 0:
+	if request_id <= 0:
 		return
-	if request_id == _request_id:
-		if _last_result["phase"] == "windup":
+	if _requests.has(request_id):
+		var entry: Dictionary = _requests[request_id]
+		if entry["ability_id"] != ability_id or entry["target_id"] != target_id:
+			return
+		var receipt: Dictionary = entry["receipt"]
+		if receipt["phase"] == "accepted":
 			_replayed_windup += 1
-		else:
+		elif receipt["phase"] == "finished":
 			_replayed_result += 1
-		receive_snapshot.rpc_id(_client_id, _last_result)
+		receive_receipt.rpc_id(_client_id, receipt)
 		return
-	if request_id < _request_id or _phase != "ready":
+	if request_id <= _highest_request_id:
+		receive_receipt.rpc_id(_client_id, _make_receipt(request_id, "rejected", "REQUEST_EXPIRED"))
+		return
+	_highest_request_id = request_id
+	_requests[request_id] = {"ability_id": ability_id, "target_id": target_id}
+	if _requests.size() > RECEIPT_LIMIT:
+		for old_id: int in _requests.keys():
+			if old_id != _request_id:
+				_requests.erase(old_id)
+				break
+	var reason: String = _activation_rejection(ability_id, target_id)
+	if not reason.is_empty():
+		_send_receipt(request_id, "rejected", reason)
+		return
+	if not _rules.activate():
+		_send_receipt(request_id, "rejected", "REJECTED")
 		return
 	_request_id = request_id
 	_settlement = ""
-	if not _rules.activate():
-		_settlement = "REJECTED"
-		_publish("ready", true)
-		return
 	_accepted += 1
-	_publish("windup", true)
+	_rules.inject_failure(_verify_failure)
+	_send_receipt(request_id, "accepted", "")
+	_publish("windup")
+
+@rpc("authority", "call_remote", "reliable")
+func receive_receipt(receipt: Dictionary) -> void:
+	if receipt["session"] != _session or _phase in ["connecting", "disconnected"]:
+		return
+	if _verify:
+		_receipt_log.append(receipt)
+	var id: int = receipt["request_id"]
+	if _received.has(id) and (_received[id] == receipt or _received[id]["phase"] != "accepted"):
+		_ignored_receipts += 1
+		return
+	_received[id] = receipt
+	if _received.size() > RECEIPT_LIMIT:
+		_received.erase(_received.keys()[0])
+	_last_receipt = receipt
+	_show_snapshot()
 
 @rpc("authority", "call_remote", "reliable")
 func receive_snapshot(data: Dictionary) -> void:
@@ -129,8 +172,9 @@ func receive_snapshot(data: Dictionary) -> void:
 		return
 	if _request_id == 0:
 		_send_new_request()
-	elif _phase in ["windup", "settled"]:
-		_send_request()
+	elif _verify_failure.is_empty() and _phase in ["windup", "settled"]:
+		_send_request_for_session(_session, _request_id)
+		_send_new_request()
 	elif _phase == "ready":
 		acknowledge_final.rpc_id(HOST_ID, _session, _version)
 
@@ -139,7 +183,7 @@ func acknowledge_final(session: int, version: int) -> void:
 	if not _verify or not _is_host or _client_id == 0 or multiplayer.get_remote_sender_id() != _client_id:
 		return
 	if _phase != "ready" or session != _session or version != _version \
-		or (_verify_reconnect and _session != 3) or (not _verify_reconnect and _settlement != "APPLIED"):
+		or (_verify_reconnect and _session != 3) or (not _verify_reconnect and _settlement.is_empty()):
 		_fail("Final acknowledgment must match a completed cast")
 		return
 	_verified = true
@@ -166,6 +210,8 @@ func confirm_final() -> void:
 		"snapshot": _snapshot,
 		"displayed_snapshots": _displayed_snapshots,
 		"ignored_snapshots": _ignored_snapshots,
+		"ignored_receipts": _ignored_receipts,
+		"receipts": _receipt_log,
 		"rules_nodes": _count_rule_nodes(get_tree().root),
 		"cleared_displays": _cleared_displays,
 	}))
@@ -187,7 +233,8 @@ func _on_peer_disconnected(id: int) -> void:
 	var windup: bool = _phase == "windup"
 	# Clear the request and its replay before cancellation can notify observers.
 	_request_id = 0
-	_last_result = {}
+	_highest_request_id = 0
+	_requests.clear()
 	_settlement = ""
 	if windup:
 		_rules.cancel_pending_cast()
@@ -207,9 +254,10 @@ func _on_cast_settled(result: TargetedStatusAbilityDefinition.Result) -> void:
 	if _client_id == 0:
 		return
 	_settlement = str(TargetedStatusAbilityDefinition.Result.keys()[result])
-	_publish("settled", true)
+	_send_receipt(_request_id, "finished", _settlement)
+	_publish("settled")
 
-func _publish(phase: String, cache_result: bool = false) -> void:
+func _publish(phase: String) -> void:
 	_phase = phase
 	_version += 1
 	_snapshot = _rules.snapshot()
@@ -218,29 +266,24 @@ func _publish(phase: String, cache_result: bool = false) -> void:
 		"session": _session,
 		"request_id": _request_id,
 		"phase": _phase,
-		"result": _settlement,
 	})
-	if cache_result:
-		_last_result = _snapshot
 	_show_snapshot()
 	if _client_id != 0:
 		receive_snapshot.rpc_id(_client_id, _snapshot)
 
 func _show_snapshot() -> void:
+	var outcome: String = _settlement if _is_host else str(_last_receipt.get("result", ""))
 	_display.text = "%s\nRequest %d  |  %s %s\nMana: %s\nCooldown: %s\nTarget mark: %s" % [
 		("Host  |  waiting for client" if _client_id == 0 else "Host") if _is_host
 			else "Client  |  Enter or Space to cast  |  R to disconnect",
-		_request_id, _phase, _snapshot["result"], _snapshot["mana"],
+		_request_id if _is_host else int(_last_receipt.get("request_id", 0)), _phase, outcome, _snapshot["mana"],
 		"active" if _snapshot["cooldown_active"] else "ready",
 		"active" if _snapshot["status_active"] else "absent",
 	]
 
 func _send_new_request() -> void:
-	_request_id += 1
-	_send_request()
-
-func _send_request() -> void:
-	_send_request_for_session(_session, _request_id)
+	_next_request_id += 1
+	_send_request_for_session(_session, _next_request_id)
 
 func _send_request_for_session(session: int, request_id: int) -> void:
 	request_cast.rpc_id(HOST_ID, session, request_id, CastRules.ABILITY_ID, CastRules.TARGET_ID)
@@ -259,6 +302,9 @@ func _disconnect_client() -> void:
 	_phase = "disconnected"
 	_snapshot = {}
 	_request_id = 0
+	_next_request_id = 0
+	_received.clear()
+	_last_receipt = {}
 	_display.text = "Disconnected  |  R to reconnect"
 	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
 	if peer != null:
@@ -293,6 +339,26 @@ func _resume_verification() -> void:
 		return
 	_cleared_displays += 1
 	_connect_client()
+
+func _activation_rejection(ability_id: StringName, target_id: int) -> String:
+	if ability_id != CastRules.ABILITY_ID:
+		return "UNKNOWN_ABILITY"
+	if target_id != CastRules.TARGET_ID:
+		return "TARGET_INVALID"
+	var state: Dictionary = _rules.snapshot()
+	if state["cast_active"]:
+		return "BUSY"
+	if state["cooldown_active"]:
+		return "COOLDOWN"
+	return ""
+
+func _make_receipt(request_id: int, phase: String, result: String) -> Dictionary:
+	return {"session": _session, "request_id": request_id, "phase": phase, "result": result}
+
+func _send_receipt(request_id: int, phase: String, result: String) -> void:
+	var receipt: Dictionary = _make_receipt(request_id, phase, result)
+	_requests[request_id]["receipt"] = receipt
+	receive_receipt.rpc_id(_client_id, receipt)
 
 func _count_rule_nodes(node: Node) -> int:
 	var count: int = int(node is GameplayAbilityComponent or node is GameplayVitalAttributeComponent

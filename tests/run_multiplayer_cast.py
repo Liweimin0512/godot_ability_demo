@@ -50,13 +50,10 @@ def load_report(output: str, marker: str) -> dict:
     return json.loads(lines[0])
 
 
-def verify(host_output: str, client_output: str, reconnect: bool) -> None:
+def verify(host_output: str, client_output: str, reconnect: bool, failure: str) -> None:
     host = load_report(host_output, "HOST_REPORT ")
     client = load_report(client_output, "CLIENT_REPORT ")
-    for counter in ("payments", "cooldown_starts", "applications", "removals"):
-        if host[counter] != 1:
-            raise RuntimeError(f"Host {counter}: expected 1, got {host[counter]}")
-    if client["rules_nodes"] != 0:
+    if client["rules_nodes"] != 0 or client["ignored_snapshots"] != 0:
         raise RuntimeError("Client must have no GAS rule nodes")
     if client["snapshot"] != host["snapshot"] or any(
         host["snapshot"][key] != value for key, value in host["rules"].items()
@@ -67,26 +64,53 @@ def verify(host_output: str, client_output: str, reconnect: bool) -> None:
     versions = [snapshot["version"] for snapshot in snapshots]
     if versions != sorted(set(versions)):
         raise RuntimeError("Each distinct snapshot must be displayed once in version order")
-    fields = ("session", "phase", "result", "mana", "cooldown_active", "status_active", "request_id")
+    fields = ("session", "phase", "mana", "cooldown_active", "status_active", "request_id")
     states = [tuple(snapshot[field] for field in fields) for snapshot in snapshots]
+    receipts = [(r["request_id"], r["phase"], r["result"]) for r in client["receipts"]]
+    if failure:
+        verify_failure(host, receipts, failure)
+        return
+    for counter in ("payments", "cooldown_starts", "applications", "removals"):
+        if host[counter] != 1:
+            raise RuntimeError(f"Host {counter}: expected 1, got {host[counter]}")
     if reconnect:
         verify_reconnect(host, client, states)
         return
 
-    counts = (host["accepted"], host["replayed_windup"], host["replayed_result"], client["ignored_snapshots"])
+    counts = (host["accepted"], host["replayed_windup"], host["replayed_result"], client["ignored_receipts"])
     if counts != (1, 1, 1, 2):
         raise RuntimeError("Expected one accepted cast and two ignored replay snapshots")
     expected_states = [
-        (1, "ready", "", 10, False, False, 0),
-        (1, "windup", "", 10, False, False, 1),
-        (1, "settled", "APPLIED", 6, True, True, 1),
-        (1, "expired", "APPLIED", 6, True, False, 1),
-        (1, "ready", "APPLIED", 6, False, False, 1),
+        (1, "ready", 10, False, False, 0),
+        (1, "windup", 10, False, False, 1),
+        (1, "settled", 6, True, True, 1),
+        (1, "expired", 6, True, False, 1),
+        (1, "ready", 6, False, False, 1),
     ]
     if states != expected_states:
         raise RuntimeError(f"Unexpected displayed states: {states}")
+    if receipts != [
+        (1, "accepted", ""), (1, "accepted", ""), (2, "rejected", "BUSY"),
+        (1, "finished", "APPLIED"), (1, "finished", "APPLIED"), (3, "rejected", "COOLDOWN"),
+    ]:
+        raise RuntimeError(f"Unexpected receipt order or content: {receipts}")
     print("Host: 2 replays, 1 payment, 1 cooldown start, 1 status application, 1 status expiry")
-    print("Client: 0 rule nodes, 2 replay snapshots ignored; both peers converge to Mana 6, no mark, cooldown ready")
+    print("Client: 0 rule nodes, 2 replay receipts ignored; busy and cooldown reject without altering snapshots")
+
+
+def verify_failure(host: dict, receipts: list, failure: str) -> None:
+    result, mana, payments = {
+        "payment": ("PAYMENT_FAILED", 3, 0),
+        "target": ("TARGET_INVALID", 10, 0),
+        "effect": ("STATUS_NOT_APPLIED", 6, 1),
+    }[failure]
+    if receipts != [(1, "accepted", ""), (1, "finished", result)] or host["accepted"] != 1:
+        raise RuntimeError(f"Wrong result for {failure}: {receipts}")
+    if (host["payments"], host["cooldown_starts"], host["applications"], host["removals"]) != (payments, payments, 0, 0):
+        raise RuntimeError(f"Wrong rule writes for {failure}: {host}")
+    if host["rules"] != {"mana": mana, "cast_active": False, "cooldown_active": False, "status_active": False}:
+        raise RuntimeError(f"Wrong final state for {failure}: {host['rules']}")
+    print(f"Failure receipt {result}: Mana {mana}, {payments} payment, 0 status applications")
 
 
 def verify_reconnect(host: dict, client: dict, states: list) -> None:
@@ -109,14 +133,14 @@ def verify_reconnect(host: dict, client: dict, states: list) -> None:
         if any(checkpoint[key] != count for key in ("payments", "cooldown_starts", "applications")):
             raise RuntimeError(f"Unexpected writes at disconnect: {checkpoint}")
     expected = [
-        (1, "ready", "", 10, False, False, 0),
-        (1, "windup", "", 10, False, False, 1),
-        (2, "ready", "", 10, False, False, 0),
-        (2, "windup", "", 10, False, False, 1),
-        (2, "settled", "APPLIED", 6, True, True, 1),
-        (3, "settled", "", 6, True, True, 0),
-        (3, "expired", "", 6, True, False, 0),
-        (3, "ready", "", 6, False, False, 0),
+        (1, "ready", 10, False, False, 0),
+        (1, "windup", 10, False, False, 1),
+        (2, "ready", 10, False, False, 0),
+        (2, "windup", 10, False, False, 1),
+        (2, "settled", 6, True, True, 1),
+        (3, "settled", 6, True, True, 0),
+        (3, "expired", 6, True, False, 0),
+        (3, "ready", 6, False, False, 0),
     ]
     if states != expected:
         raise RuntimeError(f"Unexpected reconnect snapshots: {states}")
@@ -129,11 +153,14 @@ def stop(process: subprocess.Popen) -> None:
         process.wait(timeout=5)
 
 
-def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, reconnect: bool = False) -> None:
+def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, reconnect: bool = False,
+             failure: str = "") -> None:
     base = [str(godot), "--path", str(project)]
     flags = [] if play else ["--headless"]
     verify_arg = [] if play else ["--verify-reconnect" if reconnect else "--verify"]
-    label = "reconnect" if reconnect else "cast"
+    if failure:
+        verify_arg = ["--verify-failure", failure]
+    label = failure or ("reconnect" if reconnect else "cast")
     host_log = scratch / f"{label}-host.log"
     client_log = scratch / f"{label}-client.log"
     with host_log.open("wb") as server_log, client_log.open("wb") as peer_log:
@@ -154,7 +181,7 @@ def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, r
                             while host.poll() is None and client.poll() is None:
                                 time.sleep(0.2)
                         else:
-                            if client.wait(timeout=15) != 0:
+                            if client.wait(timeout=30) != 0:
                                 raise RuntimeError("Client failed")
                             if host.wait(timeout=5) != 0:
                                 raise RuntimeError("Host failed")
@@ -168,7 +195,7 @@ def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, r
     check_output(host_output, "Host")
     check_output(client_output, "Client")
     if not play:
-        verify(host_output, client_output, reconnect)
+        verify(host_output, client_output, reconnect, failure)
 
 
 def available_port() -> int:
@@ -202,6 +229,8 @@ def main() -> None:
             run_pair(godot, project, scratch, args.port or available_port(), args.play)
             if not args.play:
                 run_pair(godot, project, scratch, args.port or available_port(), False, reconnect=True)
+                for failure in ("payment", "target", "effect"):
+                    run_pair(godot, project, scratch, args.port or available_port(), False, failure=failure)
         except KeyboardInterrupt:
             return
         except (RuntimeError, subprocess.TimeoutExpired) as error:
@@ -211,6 +240,7 @@ def main() -> None:
     if not args.play:
         print(f"PASS Ability Demo two-process cast against GAS {PLUGIN_COMMIT[:7]}")
         print("PASS Ability Demo disconnect and reconnect isolation")
+        print("PASS Ability Demo per-request receipts and failure isolation")
 
 
 if __name__ == "__main__":

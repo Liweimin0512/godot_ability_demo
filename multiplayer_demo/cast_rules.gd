@@ -17,6 +17,9 @@ var _statuses: GameplayStatusComponent
 var _ability: GameplayAbilityInstance
 var _cooldown: CooldownFeature
 var _cast: TargetedStatusAbilityDefinition.Cast
+var _target_available: bool = true
+var _invalidate_after_payment: bool = false
+var _fixture_spending: bool = false
 
 func _ready() -> void:
 	var caster: Node = Node.new()
@@ -74,12 +77,26 @@ func cancel_pending_cast() -> void:
 	if _cast != null:
 		_abilities.cancel_ability(ABILITY_ID)
 
+## Injects one failure at a controlled point in the headless verification fixture.
+func inject_failure(mode: String) -> void:
+	match mode:
+		"payment":
+			_fixture_spending = true
+			_vitals.try_spend(&"mana", 7.0)
+			_fixture_spending = false
+		"target":
+			_target_available = false
+		"effect":
+			_invalidate_after_payment = true
+
 func _is_target(target: GameplayStatusComponent) -> bool:
-	return target == _statuses
+	return _target_available and target == _statuses
 
 func _on_vital_changed(id: StringName, _value: float, _max_value: float, _percent: float, is_regen: bool) -> void:
-	if id == &"mana" and not is_regen:
+	if id == &"mana" and not is_regen and not _fixture_spending:
 		payments += 1
+		if _invalidate_after_payment:
+			_target_available = false
 
 func _on_ability_data_changed(key: String, value: Variant) -> void:
 	# Cooldown writes its configured full duration only when it starts.
