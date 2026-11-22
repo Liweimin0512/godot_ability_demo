@@ -50,7 +50,7 @@ def load_report(output: str, marker: str) -> dict:
     return json.loads(lines[0])
 
 
-def verify(host_output: str, client_output: str, reconnect: bool, failure: str) -> None:
+def verify(host_output: str, client_output: str, reconnect: bool, failure: str, actors: bool) -> None:
     host = load_report(host_output, "HOST_REPORT ")
     client = load_report(client_output, "CLIENT_REPORT ")
     if client["rules_nodes"] != 0 or client["ignored_snapshots"] != 0:
@@ -69,6 +69,9 @@ def verify(host_output: str, client_output: str, reconnect: bool, failure: str) 
     receipts = [(r["request_id"], r["phase"], r["result"]) for r in client["receipts"]]
     if failure:
         verify_failure(host, receipts, failure)
+        return
+    if actors:
+        verify_actors(host, receipts, snapshots)
         return
     for counter in ("payments", "cooldown_starts", "applications", "removals"):
         if host[counter] != 1:
@@ -102,6 +105,7 @@ def verify_failure(host: dict, receipts: list, failure: str) -> None:
     result, mana, payments = {
         "payment": ("PAYMENT_FAILED", 3, 0),
         "target": ("TARGET_INVALID", 10, 0),
+        "leave": ("TARGET_INVALID", 10, 0),
         "effect": ("STATUS_NOT_APPLIED", 6, 1),
     }[failure]
     if receipts != [(1, "accepted", ""), (1, "finished", result)] or host["accepted"] != 1:
@@ -111,6 +115,26 @@ def verify_failure(host: dict, receipts: list, failure: str) -> None:
     if host["rules"] != {"mana": mana, "cast_active": False, "cooldown_active": False, "status_active": False}:
         raise RuntimeError(f"Wrong final state for {failure}: {host['rules']}")
     print(f"Failure receipt {result}: Mana {mana}, {payments} payment, 0 status applications")
+
+
+def verify_actors(host: dict, receipts: list, snapshots: list) -> None:
+    expected = {
+        "1": {"payments": 1, "cooldowns": 1, "applications": 0, "removals": 0},
+        "2": {"payments": 1, "cooldowns": 1, "applications": 1, "removals": 1},
+        "3": {"payments": 0, "cooldowns": 0, "applications": 1, "removals": 1},
+    }
+    if host["entity_counters"] != expected:
+        raise RuntimeError("Each actor must pay locally and apply the effect to the chosen entity")
+    if receipts != [(1, "accepted", ""), (1, "finished", "APPLIED")] or host["host_receipt"] != {
+        "session": 0, "request_id": 1, "phase": "finished", "result": "APPLIED",
+    }:
+        raise RuntimeError("Both actors must accept and finish the same request number independently")
+    states = [snapshot["entities"] for snapshot in snapshots]
+    if not any(state["1"]["cast_active"] and state["2"]["cast_active"] for state in states):
+        raise RuntimeError("Expected both actors to be in windup simultaneously")
+    if [states[-1][str(actor)]["mana"] for actor in range(1, 4)] != [6, 6, 10]:
+        raise RuntimeError("Each player must spend only their own Mana")
+    print("Arena: both players cast; selected target receives status; separate Mana and cooldown")
 
 
 def verify_reconnect(host: dict, client: dict, states: list) -> None:
@@ -154,13 +178,15 @@ def stop(process: subprocess.Popen) -> None:
 
 
 def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, reconnect: bool = False,
-             failure: str = "") -> None:
+             failure: str = "", actors: bool = False) -> None:
     base = [str(godot), "--path", str(project)]
     flags = [] if play else ["--headless"]
     verify_arg = [] if play else ["--verify-reconnect" if reconnect else "--verify"]
     if failure:
         verify_arg = ["--verify-failure", failure]
-    label = failure or ("reconnect" if reconnect else "cast")
+    elif actors:
+        verify_arg = ["--verify-actors"]
+    label = failure or ("actors" if actors else "reconnect" if reconnect else "cast")
     host_log = scratch / f"{label}-host.log"
     client_log = scratch / f"{label}-client.log"
     with host_log.open("wb") as server_log, client_log.open("wb") as peer_log:
@@ -195,7 +221,7 @@ def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, r
     check_output(host_output, "Host")
     check_output(client_output, "Client")
     if not play:
-        verify(host_output, client_output, reconnect, failure)
+        verify(host_output, client_output, reconnect, failure, actors)
 
 
 def available_port() -> int:
@@ -229,8 +255,9 @@ def main() -> None:
             run_pair(godot, project, scratch, args.port or available_port(), args.play)
             if not args.play:
                 run_pair(godot, project, scratch, args.port or available_port(), False, reconnect=True)
-                for failure in ("payment", "target", "effect"):
+                for failure in ("payment", "target", "leave", "effect"):
                     run_pair(godot, project, scratch, args.port or available_port(), False, failure=failure)
+                run_pair(godot, project, scratch, args.port or available_port(), False, actors=True)
         except KeyboardInterrupt:
             return
         except (RuntimeError, subprocess.TimeoutExpired) as error:

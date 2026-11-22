@@ -2,6 +2,8 @@ extends Node
 ## Hosts the cast protocol or displays snapshots from the host on a separate peer.
 
 const CastRules = preload("cast_rules.gd")
+const CastArena = preload("cast_arena.gd")
+const ARENA_SCENE: PackedScene = preload("cast_arena.tscn")
 const HOST_ID: int = 1
 const LOCAL_ADDRESS: String = "127.0.0.1"
 const RECEIPT_LIMIT: int = 32
@@ -10,16 +12,18 @@ var _is_host: bool
 var _verify: bool
 var _verify_reconnect: bool
 var _verify_failure: String
+var _verify_actors: bool
 var _port: int
-var _rules: CastRules
+var _arena: CastArena
+var _owner_by_peer: Dictionary[int, int] = {}
+var _selected_target: int = CastArena.HOST_ACTOR
 var _client_id: int = 0
 var _session: int = 0
 var _request_id: int = 0
 var _next_request_id: int = 0
-var _highest_request_id: int = 0
 var _version: int = 0
 var _snapshot: Dictionary = {}
-var _requests: Dictionary[int, Dictionary] = {}
+var _ledgers: Dictionary[int, RequestLedger] = {}
 var _received: Dictionary[int, Dictionary] = {}
 var _last_receipt: Dictionary = {}
 var _receipt_log: Array[Dictionary] = []
@@ -40,6 +44,11 @@ var _previous_session: int = 0
 
 @onready var _display: Label = $Display
 
+class RequestLedger extends RefCounted:
+	var highest_id: int = 0
+	var last_cast_id: int = 0
+	var entries: Dictionary[int, Dictionary] = {}
+
 func _ready() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if args.size() < 2 or args[0] not in ["host", "client"] or not args[1].is_valid_int():
@@ -47,9 +56,10 @@ func _ready() -> void:
 		return
 	_is_host = args[0] == "host"
 	_verify_reconnect = args.has("--verify-reconnect")
+	_verify_actors = args.has("--verify-actors")
 	if args.size() >= 4 and args[2] == "--verify-failure":
 		_verify_failure = args[3]
-	_verify = args.has("--verify") or _verify_reconnect or not _verify_failure.is_empty()
+	_verify = args.has("--verify") or _verify_reconnect or _verify_actors or not _verify_failure.is_empty()
 	_port = args[1].to_int()
 	if not _is_host:
 		multiplayer.connection_failed.connect(_on_connection_lost)
@@ -62,29 +72,42 @@ func _ready() -> void:
 	if error != OK:
 		_fail("Could not open peer: %s" % error_string(error))
 		return
-	_rules = CastRules.new()
-	add_child(_rules)
-	_rules.settled.connect(_on_cast_settled)
+	_arena = ARENA_SCENE.instantiate() as CastArena
+	add_child(_arena)
+	_arena.settled.connect(_on_cast_settled)
+	_owner_by_peer[HOST_ID] = CastArena.HOST_ACTOR
+	_ledgers[HOST_ID] = RequestLedger.new()
+	_selected_target = CastArena.CLIENT_ACTOR
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.multiplayer_peer = peer
 	print("HOST_LISTENING")
 
 func _process(_delta: float) -> void:
-	if _rules == null or _phase not in ["settled", "expired"]:
+	if _arena == null or _phase not in ["settled", "expired"]:
 		return
-	var current: Dictionary = _rules.snapshot()
+	var current: Dictionary = _rule_snapshot()
 	if _phase == "settled" and _snapshot["status_active"] and not current["status_active"]:
 		_publish("expired")
 	if not current["cooldown_active"] and not current["status_active"]:
 		_publish("ready")
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if _is_host or _verify:
+	if _verify:
 		return
-	if event.is_action_pressed("ui_accept") and _phase == "ready":
-		_send_new_request()
-	elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
+	if event.is_action_pressed("ui_accept") and not event.is_echo():
+		if _is_host:
+			_submit_request(HOST_ID, _ledgers[HOST_ID].highest_id + 1, CastRules.ABILITY_ID, _selected_target)
+		elif _phase not in ["connecting", "disconnected"]:
+			_send_new_request(_selected_target)
+		return
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode in [KEY_1, KEY_2, KEY_3]:
+		_selected_target = int(event.keycode - KEY_1) + 1
+		if not _snapshot.is_empty():
+			_show_snapshot()
+	elif not _is_host and event.keycode == KEY_R:
 		if _phase == "disconnected":
 			_connect_client()
 		else:
@@ -97,10 +120,14 @@ func request_cast(session: int, request_id: int, ability_id: StringName, target_
 	if session != _session:
 		_stale_requests += 1
 		return
-	if request_id <= 0:
+	_submit_request(_client_id, request_id, ability_id, target_id)
+
+func _submit_request(peer_id: int, request_id: int, ability_id: StringName, target_id: int) -> void:
+	if request_id <= 0 or not _owner_by_peer.has(peer_id):
 		return
-	if _requests.has(request_id):
-		var entry: Dictionary = _requests[request_id]
+	var ledger: RequestLedger = _ledgers[peer_id]
+	if ledger.entries.has(request_id):
+		var entry: Dictionary = ledger.entries[request_id]
 		if entry["ability_id"] != ability_id or entry["target_id"] != target_id:
 			return
 		var receipt: Dictionary = entry["receipt"]
@@ -108,30 +135,31 @@ func request_cast(session: int, request_id: int, ability_id: StringName, target_
 			_replayed_windup += 1
 		elif receipt["phase"] == "finished":
 			_replayed_result += 1
-		receive_receipt.rpc_id(_client_id, receipt)
+		_reply(peer_id, receipt)
 		return
-	if request_id <= _highest_request_id:
-		receive_receipt.rpc_id(_client_id, _make_receipt(request_id, "rejected", "REQUEST_EXPIRED"))
+	if request_id <= ledger.highest_id:
+		_reply(peer_id, _make_receipt(peer_id, request_id, "rejected", "REQUEST_EXPIRED"))
 		return
-	_highest_request_id = request_id
-	_requests[request_id] = {"ability_id": ability_id, "target_id": target_id}
-	if _requests.size() > RECEIPT_LIMIT:
-		for old_id: int in _requests.keys():
-			if old_id != _request_id:
-				_requests.erase(old_id)
+	ledger.highest_id = request_id
+	ledger.entries[request_id] = {"ability_id": ability_id, "target_id": target_id}
+	if ledger.entries.size() > RECEIPT_LIMIT:
+		for old_id: int in ledger.entries.keys():
+			if old_id != ledger.last_cast_id:
+				ledger.entries.erase(old_id)
 				break
-	var reason: String = _activation_rejection(ability_id, target_id)
+	var reason: String = _arena.try_cast(_owner_by_peer[peer_id], ability_id, target_id)
 	if not reason.is_empty():
-		_send_receipt(request_id, "rejected", reason)
+		_send_receipt(peer_id, request_id, "rejected", reason)
 		return
-	if not _rules.activate():
-		_send_receipt(request_id, "rejected", "REJECTED")
+	ledger.last_cast_id = request_id
+	_send_receipt(peer_id, request_id, "accepted", "")
+	if peer_id == HOST_ID:
+		_publish("ready" if _phase == "connecting" else _phase)
 		return
 	_request_id = request_id
 	_settlement = ""
 	_accepted += 1
-	_rules.inject_failure(_verify_failure)
-	_send_receipt(request_id, "accepted", "")
+	_arena.inject_failure(_verify_failure, target_id)
 	_publish("windup")
 
 @rpc("authority", "call_remote", "reliable")
@@ -170,8 +198,14 @@ func receive_snapshot(data: Dictionary) -> void:
 	if _verify_reconnect:
 		_exercise_reconnect()
 		return
+	if _verify_actors:
+		if _next_request_id == 0:
+			_send_new_request(CastArena.PRACTICE_TARGET)
+		elif _phase == "ready" and _request_id != 0:
+			acknowledge_final.rpc_id(HOST_ID, _session, _version)
+		return
 	if _request_id == 0:
-		_send_new_request()
+		_send_new_request(CastArena.PRACTICE_TARGET if _verify_failure == "leave" else CastArena.HOST_ACTOR)
 	elif _verify_failure.is_empty() and _phase in ["windup", "settled"]:
 		_send_request_for_session(_session, _request_id)
 		_send_new_request()
@@ -187,16 +221,21 @@ func acknowledge_final(session: int, version: int) -> void:
 		_fail("Final acknowledgment must match a completed cast")
 		return
 	_verified = true
+	var counts: Dictionary = _arena.counters()
+	var remote_counts: Dictionary = counts[CastArena.CLIENT_ACTOR]
+	var target_counts: Dictionary = counts[CastArena.HOST_ACTOR]
 	var report: Dictionary = {
 		"snapshot": _snapshot,
-		"rules": _rules.snapshot(),
+		"rules": _rule_snapshot(),
 		"accepted": _accepted,
 		"replayed_windup": _replayed_windup,
 		"replayed_result": _replayed_result,
-		"payments": _rules.payments,
-		"cooldown_starts": _rules.cooldown_starts,
-		"applications": _rules.applications,
-		"removals": _rules.removals,
+		"payments": remote_counts["payments"],
+		"cooldown_starts": remote_counts["cooldowns"],
+		"applications": target_counts["applications"],
+		"removals": target_counts["removals"],
+		"entity_counters": counts,
+		"host_receipt": _last_receipt,
 		"cancelled_casts": _cancelled_casts,
 		"stale_requests": _stale_requests,
 		"disconnects": _disconnect_checks,
@@ -219,8 +258,12 @@ func confirm_final() -> void:
 
 func _on_peer_connected(id: int) -> void:
 	_client_id = id
+	_owner_by_peer[id] = CastArena.CLIENT_ACTOR
+	_ledgers[id] = RequestLedger.new()
 	_session += 1
 	_publish("ready" if _phase == "connecting" else _phase)
+	if _verify_actors:
+		_submit_request(HOST_ID, 1, CastRules.ABILITY_ID, CastArena.CLIENT_ACTOR)
 
 func _on_peer_disconnected(id: int) -> void:
 	if id != _client_id:
@@ -229,38 +272,46 @@ func _on_peer_disconnected(id: int) -> void:
 		get_tree().quit()
 		return
 	_client_id = 0
-	var before: Dictionary = _rules.snapshot()
+	_owner_by_peer.erase(id)
+	_ledgers.erase(id)
+	var before: Dictionary = _rule_snapshot()
 	var windup: bool = _phase == "windup"
 	# Clear the request and its replay before cancellation can notify observers.
 	_request_id = 0
-	_highest_request_id = 0
-	_requests.clear()
 	_settlement = ""
 	if windup:
-		_rules.cancel_pending_cast()
+		_arena.cancel_cast(CastArena.CLIENT_ACTOR)
 	_publish("ready" if windup else _phase)
 	if _verify_reconnect:
+		var counts: Dictionary = _arena.counters()
 		_disconnect_checks.append({
-			"session": _session, "before": before, "after": _rules.snapshot(),
-			"payments": _rules.payments, "cooldown_starts": _rules.cooldown_starts,
-			"applications": _rules.applications,
+			"session": _session, "before": before, "after": _rule_snapshot(),
+			"payments": counts[CastArena.CLIENT_ACTOR]["payments"],
+			"cooldown_starts": counts[CastArena.CLIENT_ACTOR]["cooldowns"],
+			"applications": counts[CastArena.HOST_ACTOR]["applications"],
 		})
 	elif _verify:
 		_fail("Client disconnected before acknowledging its final snapshot")
 
-func _on_cast_settled(result: TargetedStatusAbilityDefinition.Result) -> void:
+func _on_cast_settled(actor_id: int, result: TargetedStatusAbilityDefinition.Result) -> void:
+	var outcome: String = str(TargetedStatusAbilityDefinition.Result.keys()[result])
+	if actor_id == CastArena.HOST_ACTOR:
+		_send_receipt(HOST_ID, _ledgers[HOST_ID].last_cast_id, "finished", outcome)
+		_publish(_phase)
+		return
 	if result == TargetedStatusAbilityDefinition.Result.CANCELLED:
 		_cancelled_casts += 1
 	if _client_id == 0:
 		return
-	_settlement = str(TargetedStatusAbilityDefinition.Result.keys()[result])
-	_send_receipt(_request_id, "finished", _settlement)
+	_settlement = outcome
+	_send_receipt(_client_id, _request_id, "finished", _settlement)
 	_publish("settled")
 
 func _publish(phase: String) -> void:
 	_phase = phase
 	_version += 1
-	_snapshot = _rules.snapshot()
+	_snapshot = _rule_snapshot()
+	_snapshot["entities"] = _arena.snapshot()
 	_snapshot.merge({
 		"version": _version,
 		"session": _session,
@@ -272,21 +323,24 @@ func _publish(phase: String) -> void:
 		receive_snapshot.rpc_id(_client_id, _snapshot)
 
 func _show_snapshot() -> void:
-	var outcome: String = _settlement if _is_host else str(_last_receipt.get("result", ""))
-	_display.text = "%s\nRequest %d  |  %s %s\nMana: %s\nCooldown: %s\nTarget mark: %s" % [
+	var outcome: String = str(_last_receipt.get("result", ""))
+	var actor_id: int = CastArena.HOST_ACTOR if _is_host else CastArena.CLIENT_ACTOR
+	var actor: Dictionary = _snapshot["entities"][actor_id]
+	var target: Dictionary = _snapshot["entities"].get(_selected_target, {})
+	_display.text = "%s\n1/2/3 to select target   |   Enter to cast\nTarget: %d\nRequest %d  |  %s %s\nMana: %s\nCooldown: %s\nTarget mark: %s" % [
 		("Host  |  waiting for client" if _client_id == 0 else "Host") if _is_host
-			else "Client  |  Enter or Space to cast  |  R to disconnect",
-		_request_id if _is_host else int(_last_receipt.get("request_id", 0)), _phase, outcome, _snapshot["mana"],
-		"active" if _snapshot["cooldown_active"] else "ready",
-		"active" if _snapshot["status_active"] else "absent",
+			else "Client  |  R to disconnect",
+		_selected_target, int(_last_receipt.get("request_id", 0)), str(_last_receipt.get("phase", "")),
+		outcome, actor["mana"], "active" if actor["cooldown_active"] else "ready",
+		"active" if target.get("status_active", false) else "absent",
 	]
 
-func _send_new_request() -> void:
+func _send_new_request(target_id: int = CastArena.HOST_ACTOR) -> void:
 	_next_request_id += 1
-	_send_request_for_session(_session, _next_request_id)
+	_send_request_for_session(_session, _next_request_id, target_id)
 
-func _send_request_for_session(session: int, request_id: int) -> void:
-	request_cast.rpc_id(HOST_ID, session, request_id, CastRules.ABILITY_ID, CastRules.TARGET_ID)
+func _send_request_for_session(session: int, request_id: int, target_id: int = CastArena.HOST_ACTOR) -> void:
+	request_cast.rpc_id(HOST_ID, session, request_id, CastRules.ABILITY_ID, target_id)
 
 func _connect_client() -> void:
 	_phase = "connecting"
@@ -340,25 +394,27 @@ func _resume_verification() -> void:
 	_cleared_displays += 1
 	_connect_client()
 
-func _activation_rejection(ability_id: StringName, target_id: int) -> String:
-	if ability_id != CastRules.ABILITY_ID:
-		return "UNKNOWN_ABILITY"
-	if target_id != CastRules.TARGET_ID:
-		return "TARGET_INVALID"
-	var state: Dictionary = _rules.snapshot()
-	if state["cast_active"]:
-		return "BUSY"
-	if state["cooldown_active"]:
-		return "COOLDOWN"
-	return ""
+func _rule_snapshot() -> Dictionary:
+	var entities: Dictionary = _arena.snapshot()
+	var remote: Dictionary = entities[CastArena.CLIENT_ACTOR]
+	return {"mana": remote["mana"], "cast_active": remote["cast_active"],
+		"cooldown_active": remote["cooldown_active"], "status_active": entities[CastArena.HOST_ACTOR]["status_active"]}
 
-func _make_receipt(request_id: int, phase: String, result: String) -> Dictionary:
-	return {"session": _session, "request_id": request_id, "phase": phase, "result": result}
+func _make_receipt(peer_id: int, request_id: int, phase: String, result: String) -> Dictionary:
+	return {"session": 0 if peer_id == HOST_ID else _session, "request_id": request_id, "phase": phase, "result": result}
 
-func _send_receipt(request_id: int, phase: String, result: String) -> void:
-	var receipt: Dictionary = _make_receipt(request_id, phase, result)
-	_requests[request_id]["receipt"] = receipt
-	receive_receipt.rpc_id(_client_id, receipt)
+func _send_receipt(peer_id: int, request_id: int, phase: String, result: String) -> void:
+	var receipt: Dictionary = _make_receipt(peer_id, request_id, phase, result)
+	_ledgers[peer_id].entries[request_id]["receipt"] = receipt
+	_reply(peer_id, receipt)
+
+func _reply(peer_id: int, receipt: Dictionary) -> void:
+	if peer_id != HOST_ID:
+		receive_receipt.rpc_id(peer_id, receipt)
+	else:
+		_last_receipt = receipt
+		if not _snapshot.is_empty():
+			_show_snapshot()
 
 func _count_rule_nodes(node: Node) -> int:
 	var count: int = int(node is GameplayAbilityComponent or node is GameplayVitalAttributeComponent

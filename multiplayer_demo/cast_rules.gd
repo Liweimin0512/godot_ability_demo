@@ -1,38 +1,29 @@
-extends Node
-## Owns the GAS instances used by the host's two actors.
+extends Node3D
+## Owns one authoritative actor's GAS instances. All target resolution is supplied by the host.
 
 signal settled(result: TargetedStatusAbilityDefinition.Result)
 
 const ABILITY_ID: StringName = &"targeted_mark"
-const TARGET_ID: int = 1
+@export var entity_id: int = 0
+@export var faction: int = 0
+var alive: bool = true
 
 var payments: int = 0
 var cooldown_starts: int = 0
 var applications: int = 0
 var removals: int = 0
 
-var _abilities: GameplayAbilityComponent
-var _vitals: GameplayVitalAttributeComponent
-var _statuses: GameplayStatusComponent
 var _ability: GameplayAbilityInstance
 var _cooldown: CooldownFeature
 var _cast: TargetedStatusAbilityDefinition.Cast
 var _target_available: bool = true
 var _invalidate_after_payment: bool = false
 var _fixture_spending: bool = false
+@onready var _abilities: GameplayAbilityComponent = $Abilities
+@onready var _vitals: GameplayVitalAttributeComponent = $Vitals
+@onready var _statuses: GameplayStatusComponent = $Statuses
 
 func _ready() -> void:
-	var caster: Node = Node.new()
-	var target: Node = Node.new()
-	add_child(caster)
-	add_child(target)
-	_abilities = GameplayAbilityComponent.new()
-	_vitals = GameplayVitalAttributeComponent.new()
-	_statuses = GameplayStatusComponent.new()
-	caster.add_child(_abilities)
-	caster.add_child(_vitals)
-	target.add_child(_statuses)
-
 	var maximum: GameplayAttribute = GameplayAttribute.new()
 	maximum.attribute_id = &"max_mana"
 	var attributes: GameplayAttributeSet = GameplayAttributeSet.new()
@@ -57,9 +48,12 @@ func _ready() -> void:
 	_statuses.status_removed.connect(func(_id: StringName) -> void: removals += 1)
 	_abilities.ability_completed.connect(_on_ability_completed)
 
-func activate() -> bool:
+func status_component() -> GameplayStatusComponent:
+	return _statuses
+
+func activate(target: GameplayStatusComponent, validate_target: Callable) -> bool:
 	var cast: TargetedStatusAbilityDefinition.Cast = TargetedStatusAbilityDefinition.Cast.new(
-		_vitals, _statuses, _is_target)
+		_vitals, target, _is_target.bind(validate_target))
 	if not _abilities.try_activate_ability(ABILITY_ID, {TargetedStatusAbilityDefinition.CAST_KEY: cast}):
 		return false
 	_cast = cast
@@ -84,13 +78,11 @@ func inject_failure(mode: String) -> void:
 			_fixture_spending = true
 			_vitals.try_spend(&"mana", 7.0)
 			_fixture_spending = false
-		"target":
-			_target_available = false
 		"effect":
 			_invalidate_after_payment = true
 
-func _is_target(target: GameplayStatusComponent) -> bool:
-	return _target_available and target == _statuses
+func _is_target(target: GameplayStatusComponent, validate_target: Callable) -> bool:
+	return _target_available and validate_target.call(target) == true
 
 func _on_vital_changed(id: StringName, _value: float, _max_value: float, _percent: float, is_regen: bool) -> void:
 	if id == &"mana" and not is_regen and not _fixture_spending:
