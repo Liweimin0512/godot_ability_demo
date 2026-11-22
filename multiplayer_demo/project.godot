@@ -1,0 +1,18 @@
+config_version=5
+
+[application]
+config/name="Ability Demo - Multiplayer"
+run/main_scene="res://cast_demo.tscn"
+
+[display]
+window/size/viewport_width=680
+window/size/viewport_height=240
+
+[autoload]
+GameplayAbilitySystem="*res://addons/godot_gameplay_abilities/scripts/singletons/gameplay_ability_system.gd"
+AbilityEventBus="*res://addons/godot_gameplay_abilities/scripts/singletons/ability_event_bus.gd"
+TagManager="*res://addons/godot_gameplay_abilities/scripts/singletons/gameplay_tag_manager.gd"
+GameplayCueManager="*res://addons/godot_gameplay_abilities/scripts/singletons/gameplay_cue_manager.gd"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
