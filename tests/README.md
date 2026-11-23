@@ -2,6 +2,8 @@
 
 ## 双进程指定目标技能
 
+试玩入口、代码职责和宿主边界见[联机演示指南](../multiplayer_demo/README.md)。
+
 需要 Python 3.10+、Git、Godot 4.7.2，以及包含正式插件提交 `4e85c03` 的本地 Git 检出。在 Ability Demo 根目录执行，Windows 推荐使用 Godot 控制台版。
 
 ```sh
@@ -10,7 +12,9 @@ python tests/run_multiplayer_cast.py --godot "<Godot 可执行文件路径>" --p
 
 运行器从固定提交归档插件，组装临时 Godot 工程，再启动主机和客户端两个独立进程。两端通过本机回环 UDP 通信，可用 `--port` 指定端口。工程来源位于 `multiplayer_demo/`，通过 `.gdignore` 与主演示的内置插件隔离。
 
-验收从客户端发出一次施法，并在主机受理和结算后各重发一次同号请求。主机只受理一次，Mana 从 10 降到 6，启动一次冷却，给主机侧目标施加一次短时标记，到期移除一次。客户端只根据版本递增的快照更新界面，拒收两个重复快照，场景树中的 Ability、Vital 和 Status 规则组件计数为零。冷却结束时，最终展示快照与主机快照及主机实时规则一致。成功输出 `PASS Ability Demo two-process cast against GAS 4e85c03`，失败输出两端日志。
+验收从客户端发出一次施法，并在主机受理和结算后各重发一次同号请求。主机只受理一次，Mana 从 10 降到 6，启动一次冷却，给主机侧目标施加一次短时标记，到期移除一次。重发只回放单次请求回执，客户端忽略两份重复回执。界面按版本递增的状态快照更新，客户端规则组件计数为零。忙碌或冷却时的新请求分别收到 `BUSY` 和 `COOLDOWN`，当前施法及其快照继续推进。成功输出 `PASS Ability Demo two-process cast against GAS 4e85c03`，失败输出两端日志。
+
+同一运行器验证三种提交结果。前摇中耗掉余额返回 `PAYMENT_FAILED`，目标失效返回 `TARGET_INVALID`，两者均无技能结算写入。扣费后目标失效返回 `STATUS_NOT_APPLIED`，保留一次扣费和冷却。回执依会话与请求号关联，快照负责显示最终 Mana、冷却和标记。成功输出 `PASS Ability Demo per-request receipts and failure isolation`。
 
 同一命令还会运行断线和重连回归。每组验收分别启动一对主机和客户端。重连用例按以下顺序执行。
 
@@ -20,7 +24,11 @@ python tests/run_multiplayer_cast.py --godot "<Godot 可执行文件路径>" --p
 
 成功额外输出 `PASS Ability Demo disconnect and reconnect isolation`。主机为每次连接分配新的会话代次，按当前连接身份及代次校验请求。同一主机进程保留已提交的角色状态，重连从实时规则生成新快照。主机用收到断线事件与完成扣费的顺序裁决。
 
-命令末尾加 `--play` 打开两个窗口。在客户端窗口按 Enter 或空格施法，按 R 断线，再按 R 连回当前主机。关闭任一窗口即可结束原型。
+运行器也验证主机本地玩家与远端玩家同时施法。两人用同一个请求号也能独立结算，各扣自己的 Mana、启动自己的冷却。选中的实体独立获得标记。目标在前摇中离场或移出 5 米范围时，主机返回 `TARGET_INVALID`，技能结算写入为零。
+
+实体同步用例验证目标离场后从客户端快照移除，较晚加入能看到主机在入场前已结算的 Mana 与标记。专用夹具把状态时间设为 5 秒，验证施法者冷却先结束时可对另一个目标开始前摇，两处标记分别到期。最终比对客户端快照、主机快照和主机实时实体状态，成功输出 `PASS Ability Demo actor ownership and entity synchronization`。
+
+命令末尾加 `--play` 打开两个窗口。主机控制 1 号角色，客户端控制 2 号角色，3 号是练习目标。两端按 1、2、3 选择目标，按 Enter 或空格施法。客户端按 R 断线，再按 R 连回当前主机。关闭任一窗口即可结束原型。
 
 ## 主演示回归
 

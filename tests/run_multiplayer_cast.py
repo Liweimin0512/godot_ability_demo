@@ -35,7 +35,7 @@ def check_output(output: str, label: str) -> None:
 
 
 def wait_for_listening(host: subprocess.Popen, log: Path) -> None:
-    deadline = time.monotonic() + 10
+    deadline = time.monotonic() + 15
     while time.monotonic() < deadline and host.poll() is None:
         if "HOST_LISTENING" in log.read_text(encoding="utf-8", errors="replace").splitlines():
             return
@@ -50,43 +50,125 @@ def load_report(output: str, marker: str) -> dict:
     return json.loads(lines[0])
 
 
-def verify(host_output: str, client_output: str, reconnect: bool) -> None:
+def verify(host_output: str, client_output: str, reconnect: bool, failure: str, arena_case: str) -> None:
     host = load_report(host_output, "HOST_REPORT ")
     client = load_report(client_output, "CLIENT_REPORT ")
-    for counter in ("payments", "cooldown_starts", "applications", "removals"):
-        if host[counter] != 1:
-            raise RuntimeError(f"Host {counter}: expected 1, got {host[counter]}")
-    if client["rules_nodes"] != 0:
+    if client["rules_nodes"] != 0 or client["ignored_snapshots"] != 0:
         raise RuntimeError("Client must have no GAS rule nodes")
-    if client["snapshot"] != host["snapshot"] or any(
-        host["snapshot"][key] != value for key, value in host["rules"].items()
-    ):
+    if client["snapshot"] != host["snapshot"] or host["snapshot"]["entities"] != host["live_entities"]:
         raise RuntimeError("Final client display, host snapshot and live rules must agree")
+    if arena_case != "join" and not client["displayed_windup"]:
+        raise RuntimeError("Client must display the authoritative windup of its controlled entity")
 
     snapshots = client["displayed_snapshots"]
     versions = [snapshot["version"] for snapshot in snapshots]
     if versions != sorted(set(versions)):
         raise RuntimeError("Each distinct snapshot must be displayed once in version order")
-    fields = ("session", "phase", "result", "mana", "cooldown_active", "status_active", "request_id")
-    states = [tuple(snapshot[field] for field in fields) for snapshot in snapshots]
+    states = [
+        (s["session"], s["phase"], s["entities"]["2"]["mana"], s["entities"]["2"]["cooldown_active"],
+         s["entities"]["1"]["status_active"], s["request_id"]) for s in snapshots
+    ]
+    receipts = [(r["request_id"], r["phase"], r["result"]) for r in client["receipts"]]
+    if failure:
+        verify_failure(host, receipts, failure)
+        if failure == "leave" and (
+            "3" not in snapshots[0]["entities"] or any("3" in snapshot["entities"] for snapshot in snapshots[1:])
+        ):
+            raise RuntimeError("The detached actor must leave the next snapshot even while still allocated")
+        return
+    if arena_case == "actors":
+        verify_actors(host, receipts, snapshots)
+        return
+    if arena_case in ("sync", "join"):
+        verify_entity_sync(host, receipts, snapshots, arena_case)
+        return
+    for counter in ("payments", "cooldown_starts", "applications", "removals"):
+        if host[counter] != 1:
+            raise RuntimeError(f"Host {counter}: expected 1, got {host[counter]}")
     if reconnect:
         verify_reconnect(host, client, states)
         return
 
-    counts = (host["accepted"], host["replayed_windup"], host["replayed_result"], client["ignored_snapshots"])
+    counts = (host["accepted"], host["replayed_windup"], host["replayed_result"], client["ignored_receipts"])
     if counts != (1, 1, 1, 2):
-        raise RuntimeError("Expected one accepted cast and two ignored replay snapshots")
+        raise RuntimeError("Expected one accepted cast and two ignored replay receipts")
     expected_states = [
-        (1, "ready", "", 10, False, False, 0),
-        (1, "windup", "", 10, False, False, 1),
-        (1, "settled", "APPLIED", 6, True, True, 1),
-        (1, "expired", "APPLIED", 6, True, False, 1),
-        (1, "ready", "APPLIED", 6, False, False, 1),
+        (1, "ready", 10, False, False, 0),
+        (1, "windup", 10, False, False, 1),
+        (1, "settled", 6, True, True, 1),
+        (1, "settled", 6, True, False, 1),
+        (1, "ready", 6, False, False, 1),
     ]
     if states != expected_states:
         raise RuntimeError(f"Unexpected displayed states: {states}")
+    if receipts != [
+        (1, "accepted", ""), (1, "accepted", ""), (2, "rejected", "BUSY"),
+        (1, "finished", "APPLIED"), (1, "finished", "APPLIED"), (3, "rejected", "COOLDOWN"),
+    ]:
+        raise RuntimeError(f"Unexpected receipt order or content: {receipts}")
     print("Host: 2 replays, 1 payment, 1 cooldown start, 1 status application, 1 status expiry")
-    print("Client: 0 rule nodes, 2 replay snapshots ignored; both peers converge to Mana 6, no mark, cooldown ready")
+    print("Client: 0 rule nodes, 2 replay receipts ignored; busy and cooldown reject without altering snapshots")
+
+
+def verify_failure(host: dict, receipts: list, failure: str) -> None:
+    result, mana, payments = {
+        "payment": ("PAYMENT_FAILED", 3, 0),
+        "target": ("TARGET_INVALID", 10, 0),
+        "leave": ("TARGET_INVALID", 10, 0),
+        "effect": ("STATUS_NOT_APPLIED", 6, 1),
+    }[failure]
+    if receipts != [(1, "accepted", ""), (1, "finished", result)] or host["accepted"] != 1:
+        raise RuntimeError(f"Wrong result for {failure}: {receipts}")
+    if (host["payments"], host["cooldown_starts"], host["applications"], host["removals"]) != (payments, payments, 0, 0):
+        raise RuntimeError(f"Wrong rule writes for {failure}: {host}")
+    if host["rules"] != {"mana": mana, "cast_active": False, "cooldown_active": False, "status_active": False}:
+        raise RuntimeError(f"Wrong final state for {failure}: {host['rules']}")
+    print(f"Failure receipt {result}: Mana {mana}, {payments} payment, 0 status applications")
+
+
+def verify_actors(host: dict, receipts: list, snapshots: list) -> None:
+    expected = {
+        "1": {"payments": 1, "cooldowns": 1, "applications": 0, "removals": 0},
+        "2": {"payments": 1, "cooldowns": 1, "applications": 1, "removals": 1},
+        "3": {"payments": 0, "cooldowns": 0, "applications": 1, "removals": 1},
+    }
+    if host["entity_counters"] != expected:
+        raise RuntimeError("Each actor must pay locally and apply the effect to the chosen entity")
+    if receipts != [(1, "accepted", ""), (1, "finished", "APPLIED")] or host["host_receipt"] != {
+        "session": 0, "request_id": 1, "phase": "finished", "result": "APPLIED",
+    }:
+        raise RuntimeError("Both actors must accept and finish the same request number independently")
+    states = [snapshot["entities"] for snapshot in snapshots]
+    if not any(state["1"]["cast_active"] and state["2"]["cast_active"] for state in states):
+        raise RuntimeError("Expected both actors to be in windup simultaneously")
+    if [states[-1][str(actor)]["mana"] for actor in range(1, 4)] != [6, 6, 10]:
+        raise RuntimeError("Each player must spend only their own Mana")
+    print("Arena: both players cast; selected target receives status; separate Mana and cooldown")
+
+
+def verify_entity_sync(host: dict, receipts: list, snapshots: list, case: str) -> None:
+    states = [snapshot["entities"] for snapshot in snapshots]
+    if any(snapshot["owner_entity_id"] != 2 for snapshot in snapshots):
+        raise RuntimeError("The host must identify the client's controlled entity")
+    if any(actor["status_active"] or actor["cooldown_active"] for actor in states[-1].values()):
+        raise RuntimeError("All entity timers must reach their authoritative final state")
+    if case == "join":
+        if states[0]["1"]["mana"] != 6 or not states[0]["2"]["status_active"] or receipts:
+            raise RuntimeError("The first snapshot must include the cast settled before the client joined")
+        print("Entity sync: late join receives host Mana and an existing mark, then its expiry")
+        return
+    if receipts != [(1, "accepted", ""), (1, "finished", "APPLIED"),
+                    (2, "accepted", ""), (2, "finished", "APPLIED"), (3, "rejected", "INSUFFICIENT_MANA")]:
+        raise RuntimeError(f"Expected two settled casts and one rejection before windup: {receipts}")
+    if not any(state["1"]["status_active"] and state["2"]["cast_active"] and state["2"]["mana"] == 6
+               and snapshot["request_id"] == 2 for state, snapshot in zip(states, snapshots)):
+        raise RuntimeError("Second windup must start while the first target's mark is still active")
+    if states[-1]["2"]["mana"] != 2 or host["entity_counters"]["2"]["payments"] != 2:
+        raise RuntimeError("Each cast must spend once on the caster")
+    if any(host["entity_counters"][target][event] != 1 for target in ("1", "3")
+           for event in ("applications", "removals")):
+        raise RuntimeError("Each target's mark must apply and expire once")
+    print("Entity sync: cooldown ends before mark expiry; second target settles independently")
 
 
 def verify_reconnect(host: dict, client: dict, states: list) -> None:
@@ -109,14 +191,14 @@ def verify_reconnect(host: dict, client: dict, states: list) -> None:
         if any(checkpoint[key] != count for key in ("payments", "cooldown_starts", "applications")):
             raise RuntimeError(f"Unexpected writes at disconnect: {checkpoint}")
     expected = [
-        (1, "ready", "", 10, False, False, 0),
-        (1, "windup", "", 10, False, False, 1),
-        (2, "ready", "", 10, False, False, 0),
-        (2, "windup", "", 10, False, False, 1),
-        (2, "settled", "APPLIED", 6, True, True, 1),
-        (3, "settled", "", 6, True, True, 0),
-        (3, "expired", "", 6, True, False, 0),
-        (3, "ready", "", 6, False, False, 0),
+        (1, "ready", 10, False, False, 0),
+        (1, "windup", 10, False, False, 1),
+        (2, "ready", 10, False, False, 0),
+        (2, "windup", 10, False, False, 1),
+        (2, "settled", 6, True, True, 1),
+        (3, "settled", 6, True, True, 0),
+        (3, "settled", 6, True, False, 0),
+        (3, "ready", 6, False, False, 0),
     ]
     if states != expected:
         raise RuntimeError(f"Unexpected reconnect snapshots: {states}")
@@ -129,11 +211,16 @@ def stop(process: subprocess.Popen) -> None:
         process.wait(timeout=5)
 
 
-def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, reconnect: bool = False) -> None:
+def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, reconnect: bool = False,
+             failure: str = "", arena_case: str = "") -> None:
     base = [str(godot), "--path", str(project)]
     flags = [] if play else ["--headless"]
     verify_arg = [] if play else ["--verify-reconnect" if reconnect else "--verify"]
-    label = "reconnect" if reconnect else "cast"
+    if failure:
+        verify_arg = ["--verify-failure", failure]
+    elif arena_case:
+        verify_arg = [f"--verify-{arena_case}"]
+    label = failure or arena_case or ("reconnect" if reconnect else "cast")
     host_log = scratch / f"{label}-host.log"
     client_log = scratch / f"{label}-client.log"
     with host_log.open("wb") as server_log, client_log.open("wb") as peer_log:
@@ -150,11 +237,11 @@ def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, r
                 ) as client:
                     try:
                         if play:
-                            print("Press Enter or Space to cast, R to disconnect or reconnect. Press Ctrl+C to exit.")
+                            print("Press 1/2/3 to select, Enter or Space to cast, client R to reconnect.")
                             while host.poll() is None and client.poll() is None:
                                 time.sleep(0.2)
                         else:
-                            if client.wait(timeout=15) != 0:
+                            if client.wait(timeout=30) != 0:
                                 raise RuntimeError("Client failed")
                             if host.wait(timeout=5) != 0:
                                 raise RuntimeError("Host failed")
@@ -168,7 +255,7 @@ def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, r
     check_output(host_output, "Host")
     check_output(client_output, "Client")
     if not play:
-        verify(host_output, client_output, reconnect)
+        verify(host_output, client_output, reconnect, failure, arena_case)
 
 
 def available_port() -> int:
@@ -202,6 +289,10 @@ def main() -> None:
             run_pair(godot, project, scratch, args.port or available_port(), args.play)
             if not args.play:
                 run_pair(godot, project, scratch, args.port or available_port(), False, reconnect=True)
+                for failure in ("payment", "target", "leave", "effect"):
+                    run_pair(godot, project, scratch, args.port or available_port(), False, failure=failure)
+                for arena_case in ("actors", "sync", "join"):
+                    run_pair(godot, project, scratch, args.port or available_port(), False, arena_case=arena_case)
         except KeyboardInterrupt:
             return
         except (RuntimeError, subprocess.TimeoutExpired) as error:
@@ -211,6 +302,8 @@ def main() -> None:
     if not args.play:
         print(f"PASS Ability Demo two-process cast against GAS {PLUGIN_COMMIT[:7]}")
         print("PASS Ability Demo disconnect and reconnect isolation")
+        print("PASS Ability Demo per-request receipts and failure isolation")
+        print("PASS Ability Demo actor ownership and entity synchronization")
 
 
 if __name__ == "__main__":
