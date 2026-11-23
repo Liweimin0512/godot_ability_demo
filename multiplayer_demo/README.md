@@ -2,6 +2,8 @@
 
 练习场通过主机结算指定目标技能。两个玩家各有自己的 Mana、施法状态和冷却。目标由主机按距离、阵营和存活状态复核，标记也由主机推进到期。
 
+已有的 RoomLobby 地图另外提供双机玩法，支持宿主生成来宾角色、同步移动和在同一大厅重连。 [RoomLobby 双机 LAN 运行和验收](LAN.md)
+
 ## 运行和试玩
 
 准备 Git、Python 3.10+、Godot 4.7.2，以及包含正式插件 `4e85c03` 的 Git 检出。以下命令从 Ability Demo 根目录运行，Windows 可使用 Godot 控制台版。启动器从指定提交归档插件，将其装入临时工程，并在本机回环地址启动两个进程。主演示可以继续从仓库根目录的 `project.godot` 运行。 [正式插件](https://github.com/LiGameAcademy/godot_gameplay_abilities)

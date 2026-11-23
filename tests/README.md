@@ -2,6 +2,8 @@
 
 ## 双进程指定目标技能
 
+RoomLobby 的本机冒烟可用同一命令追加 `--lan-smoke`，验收实际地图中的移动、目标距离、两次重连和状态到期。双机指令、网络准备和逐项验收见 [LAN 试玩说明](../multiplayer_demo/LAN.md)。
+
 试玩入口、代码职责和宿主边界见[联机演示指南](../multiplayer_demo/README.md)。
 
 需要 Python 3.10+、Git、Godot 4.7.2，以及包含正式插件提交 `4e85c03` 的本地 Git 检出。在 Ability Demo 根目录执行，Windows 推荐使用 Godot 控制台版。

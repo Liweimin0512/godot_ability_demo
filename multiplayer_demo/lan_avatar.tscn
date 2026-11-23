@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://lan_avatar.gd" id="1"]
+
+[sub_resource type="CapsuleMesh" id="Capsule"]
+radius = 0.45
+height = 1.75
+
+[sub_resource type="StandardMaterial3D" id="Blue"]
+albedo_color = Color(0.16, 0.55, 0.95, 1)
+
+[sub_resource type="StandardMaterial3D" id="Red"]
+albedo_color = Color(0.88, 0.34, 0.20, 1)
+
+[sub_resource type="StandardMaterial3D" id="Gold"]
+albedo_color = Color(1, 0.76, 0.19, 1)
+shading_mode = 0
+
+[sub_resource type="TorusMesh" id="Mark"]
+inner_radius = 0.62
+outer_radius = 0.72
+material = SubResource("Gold")
+
+[node name="LanAvatar" type="Node3D"]
+script = ExtResource("1")
+host_material = SubResource("Blue")
+guest_material = SubResource("Red")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.89, 0)
+mesh = SubResource("Capsule")
+
+[node name="Mark" type="MeshInstance3D" parent="."]
+visible = false
+position = Vector3(0, 1.9, 0)
+mesh = SubResource("Mark")
+
+[node name="Nameplate" type="Label3D" parent="."]
+position = Vector3(0, 2.6, 0)
+billboard = 1
+font_size = 32
+outline_size = 10
