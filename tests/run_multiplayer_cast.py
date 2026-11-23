@@ -2,6 +2,7 @@
 
 import argparse
 import io
+from ipaddress import IPv4Address
 import json
 from pathlib import Path
 import shutil
@@ -14,12 +15,28 @@ import zipfile
 
 PLUGIN_COMMIT = "4e85c03ccbc523dee7a711f303bcf1134dc3f0af"
 DEMO = Path(__file__).resolve().parents[1] / "multiplayer_demo"
+LOBBY_ASSETS = (
+    "scenes/room_lobby.tscn",
+    "scenes/dungeon_room.gd",
+    "scenes/dungeon_room.gd.uid",
+    "assets/grid_libraries/dungeon_tileset.tres",
+    "assets/materials/texture.tres",
+    "assets/scenes/door.tscn",
+    "assets/models/dungeon/wall_doorway.gltf",
+    "assets/models/dungeon/wall_doorway.gltf.import",
+    "assets/models/dungeon/wall_doorway.bin",
+    "assets/models/dungeon/dungeon_texture.png",
+)
 DIAGNOSTICS = ("ERROR:", "ObjectDB instances leaked", "ObjectDB instances were leaked",
                "Resource still in use", "Resources still in use")
 
 
 def prepare_project(plugin: Path, project: Path) -> None:
     shutil.copytree(DEMO, project, ignore=shutil.ignore_patterns(".gdignore", ".godot", "addons"))
+    for asset in LOBBY_ASSETS:
+        destination = project / asset
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(DEMO.parent / asset, destination)
     archive = subprocess.run(
         ["git", "-C", str(plugin), "archive", "--format=zip", PLUGIN_COMMIT],
         check=True, stdout=subprocess.PIPE, timeout=30,
@@ -212,7 +229,7 @@ def stop(process: subprocess.Popen) -> None:
 
 
 def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, reconnect: bool = False,
-             failure: str = "", arena_case: str = "") -> None:
+             failure: str = "", arena_case: str = "", lan: bool = False) -> None:
     base = [str(godot), "--path", str(project)]
     flags = [] if play else ["--headless"]
     verify_arg = [] if play else ["--verify-reconnect" if reconnect else "--verify"]
@@ -220,19 +237,23 @@ def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, r
         verify_arg = ["--verify-failure", failure]
     elif arena_case:
         verify_arg = [f"--verify-{arena_case}"]
-    label = failure or arena_case or ("reconnect" if reconnect else "cast")
+    label = "lan" if lan else (failure or arena_case or ("reconnect" if reconnect else "cast"))
+    scene = ["res://lan_match.tscn"] if lan else []
+    address = ["127.0.0.1"] if lan else []
+    if lan:
+        verify_arg = ["--verify-lan"]
     host_log = scratch / f"{label}-host.log"
     client_log = scratch / f"{label}-client.log"
     with host_log.open("wb") as server_log, client_log.open("wb") as peer_log:
         with subprocess.Popen(
-            [*base, *flags, "--", "host", str(port), *verify_arg],
+            [*base, *flags, *scene, "--", "host", *address, str(port), *verify_arg],
             stdout=server_log, stderr=subprocess.STDOUT,
         ) as host:
             try:
                 wait_for_listening(host, host_log)
                 print(f"Host listening on 127.0.0.1:{port}", flush=True)
                 with subprocess.Popen(
-                    [*base, *flags, "--", "client", str(port), *verify_arg],
+                    [*base, *flags, *scene, "--", "client", *address, str(port), *verify_arg],
                     stdout=peer_log, stderr=subprocess.STDOUT,
                 ) as client:
                     try:
@@ -254,7 +275,13 @@ def run_pair(godot: Path, project: Path, scratch: Path, port: int, play: bool, r
     client_output = client_log.read_text(encoding="utf-8", errors="replace")
     check_output(host_output, "Host")
     check_output(client_output, "Client")
-    if not play:
+    if lan:
+        if "PASS LAN host authoritative writes" not in host_output or (
+            "PASS LAN guest movement, range, expiry and reconnect" not in client_output
+        ):
+            raise RuntimeError("LAN verifiers did not both finish")
+        print("PASS Ability Demo LAN lobby movement, target validation and reconnect")
+    elif not play:
         verify(host_output, client_output, reconnect, failure, arena_case)
 
 
@@ -264,15 +291,34 @@ def available_port() -> int:
         return sock.getsockname()[1]
 
 
+def launch_lan(godot: Path, project: Path, role: str, address: IPv4Address, port: int) -> None:
+    with subprocess.Popen(
+        [str(godot), "--path", str(project), "--resolution", "960x640", "res://lan_match.tscn",
+         "--", role, str(address), str(port)],
+    ) as process:
+        try:
+            if process.wait() != 0:
+                raise RuntimeError(f"LAN {role} process exited with code {process.returncode}")
+        finally:
+            stop(process)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--godot", required=True, type=Path, help="Godot console executable")
     parser.add_argument("--plugin", required=True, type=Path, help="Git checkout containing the pinned commit")
-    parser.add_argument("--port", type=int, help="Optional loopback UDP port")
-    parser.add_argument("--play", action="store_true", help="Open two interactive windows")
+    parser.add_argument("--port", type=int, help="UDP port (LAN default: 7000)")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--play", action="store_true", help="Open two interactive fixture windows")
+    modes.add_argument("--lan-host", action="store_true", help="Host RoomLobby for one LAN guest")
+    modes.add_argument("--lan-join", type=IPv4Address, metavar="HOST_IPV4", help="Join the RoomLobby host")
+    modes.add_argument("--lan-smoke", action="store_true", help="Run the real LAN scene over loopback")
+    parser.add_argument("--bind", type=IPv4Address, metavar="LOCAL_IPV4", help="LAN host bind address")
     args = parser.parse_args()
     if args.port is not None and not 1 <= args.port <= 65535:
         parser.error("--port must be between 1 and 65535")
+    if args.bind and not args.lan_host:
+        parser.error("--bind is only supported with --lan-host")
 
     with tempfile.TemporaryDirectory(prefix="ability-multiplayer-") as directory:
         scratch = Path(directory)
@@ -286,6 +332,14 @@ def main() -> None:
         if imported.returncode or any(item in imported.stdout + imported.stderr for item in DIAGNOSTICS):
             raise SystemExit(imported.stdout + imported.stderr)
         try:
+            if args.lan_host or args.lan_join:
+                role = "host" if args.lan_host else "client"
+                address = (args.bind or IPv4Address("0.0.0.0")) if args.lan_host else args.lan_join
+                launch_lan(godot, project, role, address, args.port or 7000)
+                return
+            if args.lan_smoke:
+                run_pair(godot, project, scratch, args.port or available_port(), False, lan=True)
+                return
             run_pair(godot, project, scratch, args.port or available_port(), args.play)
             if not args.play:
                 run_pair(godot, project, scratch, args.port or available_port(), False, reconnect=True)

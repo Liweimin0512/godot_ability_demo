@@ -13,20 +13,15 @@ var _actors: Dictionary[int, CastRules] = {}
 var _detached_fixture_target: CastRules
 var long_status_actor_id: int = 0
 
-@onready var _host_actor: CastRules = $HostActor
-@onready var _client_actor: CastRules = $ClientActor
-@onready var _practice_target: CastRules = $PracticeTarget
-
 func _enter_tree() -> void:
 	if long_status_actor_id != 0:
 		var actor: CastRules = $HostActor if long_status_actor_id == HOST_ACTOR else $ClientActor
 		actor.status_seconds = 5.0
 
 func _ready() -> void:
-	var actors: Array[CastRules] = [_host_actor, _client_actor, _practice_target]
-	for actor: CastRules in actors:
-		_actors[actor.entity_id] = actor
-		actor.settled.connect(_on_actor_settled.bind(actor.entity_id))
+	for child: Node in get_children():
+		if child is CastRules:
+			_register_actor(child)
 
 func _exit_tree() -> void:
 	if is_instance_valid(_detached_fixture_target):
@@ -54,6 +49,26 @@ func cancel_cast(actor_id: int) -> void:
 	if is_instance_valid(_actors.get(actor_id)):
 		_actors[actor_id].cancel_pending_cast()
 
+func add_actor(actor: CastRules) -> void:
+	add_child(actor)
+	_register_actor(actor)
+
+func set_actor_present(actor_id: int, present: bool) -> void:
+	_actors[actor_id].present = present
+
+func remove_actor(actor_id: int) -> void:
+	var actor: CastRules = _actors[actor_id]
+	_actors.erase(actor_id)
+	actor.queue_free()
+
+## Advances a present actor on the host within the lobby's walkable bounds.
+func move_actor(actor_id: int, offset: Vector2, bounds: Rect2) -> void:
+	var actor: CastRules = _actors.get(actor_id)
+	if not is_instance_valid(actor) or not actor.present or not actor.alive:
+		return
+	var next_position: Vector2 = (Vector2(actor.position.x, actor.position.z) + offset).clamp(bounds.position, bounds.end)
+	actor.position = Vector3(next_position.x, actor.position.y, next_position.y)
+
 func inject_failure(mode: String, target_id: int) -> void:
 	match mode:
 		"target":
@@ -63,18 +78,19 @@ func inject_failure(mode: String, target_id: int) -> void:
 			_detached_fixture_target = _actors[target_id]
 			remove_child(_detached_fixture_target)
 		_:
-			_client_actor.inject_failure(mode)
+			_actors[CLIENT_ACTOR].inject_failure(mode)
 
 func snapshot() -> Dictionary:
 	var entities: Dictionary = {}
 	for id: int in _actors:
 		var actor: CastRules = _actors[id]
-		if not is_instance_valid(actor) or not actor.is_inside_tree() or actor.is_queued_for_deletion():
+		if not is_instance_valid(actor) or not actor.is_inside_tree() or actor.is_queued_for_deletion() or not actor.present:
 			continue
 		var data: Dictionary = actor.snapshot()
 		data["alive"] = actor.alive
 		data["faction"] = actor.faction
 		data["x"] = actor.position.x
+		data["position"] = actor.global_position
 		entities[id] = data
 	return entities
 
@@ -93,11 +109,16 @@ func _valid_target(actor_id: int, target_id: int) -> bool:
 	return is_instance_valid(actor) and is_instance_valid(target) and actor != target \
 		and actor.is_inside_tree() and target.is_inside_tree() \
 		and not actor.is_queued_for_deletion() and not target.is_queued_for_deletion() \
-		and actor.alive and target.alive and actor.faction != target.faction \
-		and actor.position.distance_squared_to(target.position) <= CAST_RANGE_SQUARED
+		and actor.present and target.present and actor.alive and target.alive and actor.faction != target.faction \
+		and actor.global_position.distance_squared_to(target.global_position) <= CAST_RANGE_SQUARED
 
 func _check_target(component: GameplayStatusComponent, actor_id: int, target_id: int) -> bool:
 	return _valid_target(actor_id, target_id) and _actors[target_id].status_component() == component
 
 func _on_actor_settled(result: TargetedStatusAbilityDefinition.Result, entity_id: int) -> void:
 	settled.emit(entity_id, result)
+
+func _register_actor(actor: CastRules) -> void:
+	assert(actor.entity_id > 0 and not _actors.has(actor.entity_id))
+	_actors[actor.entity_id] = actor
+	actor.settled.connect(_on_actor_settled.bind(actor.entity_id))

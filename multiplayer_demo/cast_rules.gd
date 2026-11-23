@@ -8,6 +8,7 @@ const ABILITY_ID: StringName = &"targeted_mark"
 @export var faction: int = 0
 @export var status_seconds: float = 2.0
 var alive: bool = true
+var present: bool = true
 
 var payments: int = 0
 var cooldown_starts: int = 0
