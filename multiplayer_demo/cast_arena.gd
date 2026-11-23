@@ -10,6 +10,7 @@ const PRACTICE_TARGET: int = 3
 const CAST_RANGE_SQUARED: float = 25.0
 
 var _actors: Dictionary[int, CastRules] = {}
+var _detached_fixture_target: CastRules
 var long_status_actor_id: int = 0
 
 @onready var _host_actor: CastRules = $HostActor
@@ -26,6 +27,10 @@ func _ready() -> void:
 	for actor: CastRules in actors:
 		_actors[actor.entity_id] = actor
 		actor.settled.connect(_on_actor_settled.bind(actor.entity_id))
+
+func _exit_tree() -> void:
+	if is_instance_valid(_detached_fixture_target):
+		_detached_fixture_target.free()
 
 func try_cast(actor_id: int, ability_id: StringName, target_id: int) -> String:
 	if ability_id != CastRules.ABILITY_ID:
@@ -54,7 +59,9 @@ func inject_failure(mode: String, target_id: int) -> void:
 		"target":
 			_actors[target_id].position.x += 10.0
 		"leave":
-			_actors[target_id].queue_free()
+			# Keep the fixture allocated to verify detachment alone removes it from replication.
+			_detached_fixture_target = _actors[target_id]
+			remove_child(_detached_fixture_target)
 		_:
 			_client_actor.inject_failure(mode)
 
@@ -62,7 +69,7 @@ func snapshot() -> Dictionary:
 	var entities: Dictionary = {}
 	for id: int in _actors:
 		var actor: CastRules = _actors[id]
-		if not is_instance_valid(actor) or actor.is_queued_for_deletion():
+		if not is_instance_valid(actor) or not actor.is_inside_tree() or actor.is_queued_for_deletion():
 			continue
 		var data: Dictionary = actor.snapshot()
 		data["alive"] = actor.alive

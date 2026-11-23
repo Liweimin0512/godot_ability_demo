@@ -37,6 +37,7 @@ var _replayed_windup: int = 0
 var _replayed_result: int = 0
 var _ignored_snapshots: int = 0
 var _displayed_snapshots: Array[Dictionary] = []
+var _displayed_windup: bool = false
 var _verified: bool = false
 var _stale_requests: int = 0
 var _cancelled_casts: int = 0
@@ -198,6 +199,10 @@ func receive_snapshot(data: Dictionary) -> void:
 	if not _verify:
 		return
 	_displayed_snapshots.append(data)
+	var owner_id: int = data["owner_entity_id"]
+	var actor: Dictionary = data["entities"][owner_id]
+	if actor["cast_active"]:
+		_displayed_windup = _display.text.contains("%d  |  Mana %s  |  Windup" % [owner_id, actor["mana"]])
 	if _verify_sync or _verify_join:
 		_exercise_entity_sync()
 		return
@@ -257,6 +262,7 @@ func confirm_final() -> void:
 	print("CLIENT_REPORT ", JSON.stringify({
 		"snapshot": _snapshot,
 		"displayed_snapshots": _displayed_snapshots,
+		"displayed_windup": _displayed_windup,
 		"ignored_snapshots": _ignored_snapshots,
 		"ignored_receipts": _ignored_receipts,
 		"receipts": _receipt_log,
@@ -347,8 +353,9 @@ func _show_snapshot() -> void:
 	]
 	for id: int in _snapshot["entities"]:
 		var state: Dictionary = _snapshot["entities"][id]
+		var activity: String = "Windup" if state["cast_active"] else ("Cooldown" if state["cooldown_active"] else "Ready")
 		_display.text += "\n%d  |  Mana %s  |  %s%s" % [id, state["mana"],
-			"Cooldown" if state["cooldown_active"] else "Ready", "  |  Marked" if state["status_active"] else ""]
+			activity, "  |  Marked" if state["status_active"] else ""]
 
 func _send_new_request(target_id: int = CastArena.HOST_ACTOR) -> void:
 	_next_request_id += 1

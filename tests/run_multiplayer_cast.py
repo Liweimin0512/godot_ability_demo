@@ -57,6 +57,8 @@ def verify(host_output: str, client_output: str, reconnect: bool, failure: str, 
         raise RuntimeError("Client must have no GAS rule nodes")
     if client["snapshot"] != host["snapshot"] or host["snapshot"]["entities"] != host["live_entities"]:
         raise RuntimeError("Final client display, host snapshot and live rules must agree")
+    if arena_case != "join" and not client["displayed_windup"]:
+        raise RuntimeError("Client must display the authoritative windup of its controlled entity")
 
     snapshots = client["displayed_snapshots"]
     versions = [snapshot["version"] for snapshot in snapshots]
@@ -69,8 +71,10 @@ def verify(host_output: str, client_output: str, reconnect: bool, failure: str, 
     receipts = [(r["request_id"], r["phase"], r["result"]) for r in client["receipts"]]
     if failure:
         verify_failure(host, receipts, failure)
-        if failure == "leave" and ("3" not in snapshots[0]["entities"] or "3" in snapshots[-1]["entities"]):
-            raise RuntimeError("The departing entity must disappear from the replicated arena")
+        if failure == "leave" and (
+            "3" not in snapshots[0]["entities"] or any("3" in snapshot["entities"] for snapshot in snapshots[1:])
+        ):
+            raise RuntimeError("The detached actor must leave the next snapshot even while still allocated")
         return
     if arena_case == "actors":
         verify_actors(host, receipts, snapshots)
